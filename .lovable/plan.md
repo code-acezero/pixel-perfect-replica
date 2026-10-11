@@ -1,21 +1,31 @@
-# Araneid / Tensora — Textile QA Console
+# Araneid / Tensora — Industrial Textile QA Platform
 
-A single-screen, dark industrial dashboard built exactly to the brief, running on a simulated factory stream (with optional webcam).
+A multi-page, enterprise-style console with a collapsible sidebar, persistent top bar, and tabbed sub-views on every major page. Runs on a simulated factory stream (optional webcam), session data only.
 
-## What gets built
-1. **Header**: "ARANEID / Tensora" mark, facility + roll info, toggle between Live Camera Feed and Simulated Factory Stream.
-2. **Optical Inspection Station (left)**: 16:9 animated fabric-scanning feed (procedural knit texture scrolling), canvas overlay drawing labeled defect boxes with confidence, cyan telemetry HUD (speed, camera, inference ms). Buttons: Pause Inspection, Log Manual Flaw, Snapshot (downloads PNG).
-3. **ASTM D5430 4-Point Meter (right)**: radial gauge of points/100 sq yd using the given formula, PASS (green) / pulsing REJECT (red) badge at 24.0, metrics (length, width, total points, 1–4 pt breakdown) updating live.
-4. **Defect Ledger + HITL triage**: table with timestamp, meter mark, class, severity, confidence, thumbnail crop captured from the feed; Confirm / Reclassify (dropdown) / Dismiss — dismissed items drop out of the score.
-5. **Factory Intelligence card**: cluster alert (e.g. 3 needle lines within 15 m → inspect Needle #142), recomputed from ledger data.
-6. **Certificate modal**: "ARANEID QUALITY AUDIT CERTIFICATE — Powered by Tensora" with lot summary, defect coordinate table, SHA-256 hash + QR code, print/save as PDF.
+## App shell
+- **Sidebar** (collapses to icon strip): Overview, Live Inspection, Defect Ledger, Rolls & Lots, Lines & Machines, Factory Intelligence, Certificates, Reports, Settings.
+- **Top bar**: "ARANEID / Tensora" mark, facility selector ("Ashulia Mill — Unit 03 | Line #04 (Circular Knit)"), active roll ("Roll #TX-8829 | 100% Combed Cotton Single Jersey (180 GSM)"), Live Camera / Simulated Stream toggle, alert bell, operator menu.
+- Breadcrumbs and page header with actions on every page.
 
-Seeded with the brief's starting values (142.5 m, 60 in, 18 pts: 3×1, 4×2, 1×3, 1×4).
+## Pages
+1. **Overview** (`/`) — KPI tiles (rolls inspected, pass rate, avg pts/100 yd², scrap saved), per-line status grid, recent alerts, trend charts. Tabs: Today / Shift / 7 days.
+2. **Live Inspection** (`/inspection`) — tabs:
+   - *Station*: 16:9 scanning feed + bounding box canvas + cyan HUD; Pause, Log Manual Flaw, Snapshot; ASTM D5430 4-point gauge with PASS/REJECT badge at 24.0 and severity breakdown (seed: 142.5 m, 60 in, 18 pts).
+   - *Telemetry*: speed, inference latency, FPS charts.
+   - *Camera Diagnostics*: focus, exposure, lighting uniformity, calibration status.
+3. **Defect Ledger** (`/defects`) — tabs: Pending Triage / Confirmed / Dismissed / All. Filterable table (timestamp, meter mark, class, severity, confidence, thumbnail), Confirm / Reclassify / Dismiss, bulk actions, defect detail drawer.
+4. **Rolls & Lots** (`/rolls`, `/rolls/$rollId`) — roll list with status; roll detail with tabs: Summary / Defect Map (defects plotted along length × width) / Audit History.
+5. **Lines & Machines** (`/lines`, `/lines/$lineId`) — machine cards; detail tabs: Health / Needle & Cylinder Map / Maintenance Log.
+6. **Factory Intelligence** (`/intelligence`) — tabs: Active Alerts (incl. "3 needle line defects within 15 m → inspect Needle #142 on Cylinder Head 2, est. scrap saved $380") / Root-Cause Patterns / Recommendations.
+7. **Certificates** (`/certificates`, `/certificates/$id`) — issued list; certificate view "ARANEID QUALITY AUDIT CERTIFICATE — Powered by Tensora" with lot summary, defect coordinate table, SHA-256 hash + QR, print/save PDF.
+8. **Reports** (`/reports`) — tabs: Quality Trends / Defect Pareto / Buyer Compliance; CSV export.
+9. **Settings** (`/settings`) — tabs: Inspection Thresholds (ASTM limit, severity rules) / Defect Classes / Cameras / Users & Roles (display only).
 
 ## Design
-Slate-950/900 surfaces, slate-800 borders; emerald/amber/crimson/cyan as semantic tokens; monospace telemetry type (JetBrains Mono) with a technical sans for headings.
+Slate-950/900 surfaces, slate-800 borders, emerald/amber/crimson/cyan as semantic tokens; dense data tables, JetBrains Mono for telemetry, a technical sans for headings. Status colors used consistently across all pages.
 
 ## Technical details
-- Index route rewritten; state in a React store (no backend — data lives in the session).
-- Simulated detections are generated randomly; webcam via getUserMedia with simulated boxes overlaid (no real ML model).
-- `qrcode` package for the QR; Web Crypto for the hash; shadcn dialog/table/select/switch.
+- Separate TanStack route files per page with own head() metadata; tabs via shadcn Tabs bound to `?tab=` search param so tabs are linkable.
+- Shared client store (Zustand-style React context) seeded with realistic mock rolls, lines, defects; live simulation ticks feed the store so all pages update together.
+- shadcn sidebar, tabs, table, dialog, sheet, select, switch; recharts for charts; `qrcode` + Web Crypto for certificates.
+- No backend in this phase (data resets on reload); Lovable Cloud can be added later for persistence and logins.
