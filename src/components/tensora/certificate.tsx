@@ -26,7 +26,7 @@ export function CertificateDocument({ cert }: { cert: Certificate }) {
     });
     void sha256Hex(payload).then(async (h) => {
       setHash(h);
-      setQr(await QRCode.toDataURL(`https://verify.araneid.com/c/${cert.id}?h=${h.slice(0, 16)}`, { margin: 1, width: 220 }));
+      setQr(await QRCode.toDataURL(`${window.location.origin}/verify/${cert.id}?h=${h.slice(0, 16)}`, { margin: 1, width: 220 }));
     });
   }, [cert.id, s.points, s.score, s.list, s.roll.id]);
 

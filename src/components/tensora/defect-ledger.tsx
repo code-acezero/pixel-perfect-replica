@@ -8,6 +8,7 @@ import { DEFECT_CLASSES, DEFAULT_POINTS, type Defect, type DefectClass } from "@
 import { useTensora } from "@/lib/tensora/store";
 import { SeverityBadge, Tag, fmtTime } from "./ui";
 import { cn } from "@/lib/utils";
+import { useCan } from "@/lib/tensora/use-can";
 
 function Thumb({ d }: { d: Defect }) {
   if (d.thumb) return <img src={d.thumb} alt={`${d.cls} crop`} className="h-12 w-16 shrink-0 rounded-sm border border-border object-cover" />;
@@ -70,6 +71,8 @@ function Reclassify({ d }: { d: Defect }) {
 
 function Actions({ d }: { d: Defect }) {
   const setStatus = useTensora((s) => s.setDefectStatus);
+  const allowed = useCan("review");
+  if (!allowed) return <div className="text-right text-[10px] text-muted-foreground">{d.reviewer ? `by ${d.reviewer}` : "Awaiting QC"}</div>;
   return (
     <div className="flex items-center justify-end gap-1.5">
       <Button size="sm" variant="outline" className="h-8 gap-1 border-pass/40 px-2 text-xs text-pass hover:bg-pass/10 hover:text-pass" onClick={() => { setStatus(d.id, "confirmed"); toast.success(`${d.id} confirmed`); }}>

@@ -9,6 +9,7 @@ import { DefectLedger } from "@/components/tensora/defect-ledger";
 import { useTensora } from "@/lib/tensora/store";
 import { DEFECT_CLASSES } from "@/lib/tensora/data";
 import { tabSearch } from "@/lib/tensora/search";
+import { useCan } from "@/lib/tensora/use-can";
 
 export const Route = createFileRoute("/_authenticated/triage")({
   validateSearch: tabSearch,
@@ -27,6 +28,7 @@ function TriagePage() {
   const { tab = "pending" } = Route.useSearch();
   const navigate = useNavigate({ from: "/triage" });
   const { defects, rolls, feedbackCount, setDefectStatus } = useTensora();
+  const canReview = useCan("review");
   const [roll, setRoll] = useState("all");
   const [cls, setCls] = useState("all");
   const counts = {
@@ -46,7 +48,7 @@ function TriagePage() {
         description="Every reviewer decision trains the model. Dismissed defects are removed from roll scores."
         actions={
           tab === "pending" && list.length > 0 ? (
-            <Button variant="outline" className="border-pass/40 text-pass" onClick={() => { list.filter((d) => d.confidence >= 0.9).forEach((d) => setDefectStatus(d.id, "confirmed")); toast.success("Confirmed all ≥ 90% confidence"); }}>
+            <Button variant="outline" className="border-pass/40 text-pass" disabled={!canReview} onClick={() => { list.filter((d) => d.confidence >= 0.9).forEach((d) => setDefectStatus(d.id, "confirmed")); toast.success("Confirmed all ≥ 90% confidence"); }}>
               Confirm all ≥ 90%
             </Button>
           ) : null

@@ -12,7 +12,8 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { AppShell } from "@/components/tensora/app-shell";
+import { supabase } from "@/integrations/supabase/client";
+import { useTensora } from "@/lib/tensora/store";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
@@ -114,12 +115,30 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
+
+  useEffect(() => {
+    const { data } = supabase.auth.onAuthStateChange((event) => {
+      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+      if (event === "SIGNED_OUT") useTensora.getState().reset();
+      void router.invalidate();
+      if (event !== "SIGNED_OUT") void queryClient.invalidateQueries();
+      if (event === "SIGNED_IN") {
+        const next = sessionStorage.getItem("tensora-after-auth");
+        if (next) {
+          sessionStorage.removeItem("tensora-after-auth");
+          void router.navigate({ to: next, replace: true });
+        } else if (window.location.pathname === "/auth") {
+          void router.navigate({ to: "/", replace: true });
+        }
+      }
+    });
+    return () => data.subscription.unsubscribe();
+  }, [router, queryClient]);
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AppShell>
-        <Outlet />
-      </AppShell>
+      <Outlet />
       <Toaster />
     </QueryClientProvider>
   );
