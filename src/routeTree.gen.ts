@@ -9,143 +9,182 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AnalyticsRouteImport } from './routes/analytics'
-import { Route as CaptureRouteImport } from './routes/capture'
-import { Route as CertifyRouteImport } from './routes/certify'
-import { Route as ConfigurationRouteImport } from './routes/configuration'
-import { Route as DevicesRouteImport } from './routes/devices'
-import { Route as GradeRouteImport } from './routes/grade'
-import { Route as InsightRouteImport } from './routes/insight'
-import { Route as TraceRouteImport } from './routes/trace'
-import { Route as TriageRouteImport } from './routes/triage'
-import { Route as CertifyIndexRouteImport } from './routes/certify.index'
-import { Route as CertifyCertIdRouteImport } from './routes/certify.$certId'
-import { Route as TraceIndexRouteImport } from './routes/trace.index'
-import { Route as TraceRollIdRouteImport } from './routes/trace.$rollId'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
+import { Route as AuthenticatedCaptureRouteImport } from './routes/_authenticated/capture'
+import { Route as AuthenticatedCertifyRouteImport } from './routes/_authenticated/certify'
+import { Route as AuthenticatedConfigurationRouteImport } from './routes/_authenticated/configuration'
+import { Route as AuthenticatedDevicesRouteImport } from './routes/_authenticated/devices'
+import { Route as AuthenticatedGradeRouteImport } from './routes/_authenticated/grade'
+import { Route as AuthenticatedInsightRouteImport } from './routes/_authenticated/insight'
+import { Route as AuthenticatedTraceRouteImport } from './routes/_authenticated/trace'
+import { Route as AuthenticatedTriageRouteImport } from './routes/_authenticated/triage'
+import { Route as VerifyCertIdRouteImport } from './routes/verify.$certId'
+import { Route as AuthenticatedCertifyIndexRouteImport } from './routes/_authenticated/certify.index'
+import { Route as AuthenticatedCertifyCertIdRouteImport } from './routes/_authenticated/certify.$certId'
+import { Route as AuthenticatedTraceIndexRouteImport } from './routes/_authenticated/trace.index'
+import { Route as AuthenticatedTraceRollIdRouteImport } from './routes/_authenticated/trace.$rollId'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AnalyticsRoute = AnalyticsRouteImport.update({
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const CaptureRoute = CaptureRouteImport.update({
+const AuthenticatedCaptureRoute = AuthenticatedCaptureRouteImport.update({
   id: '/capture',
   path: '/capture',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const CertifyRoute = CertifyRouteImport.update({
+const AuthenticatedCertifyRoute = AuthenticatedCertifyRouteImport.update({
   id: '/certify',
   path: '/certify',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const ConfigurationRoute = ConfigurationRouteImport.update({
-  id: '/configuration',
-  path: '/configuration',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DevicesRoute = DevicesRouteImport.update({
+const AuthenticatedConfigurationRoute =
+  AuthenticatedConfigurationRouteImport.update({
+    id: '/configuration',
+    path: '/configuration',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDevicesRoute = AuthenticatedDevicesRouteImport.update({
   id: '/devices',
   path: '/devices',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const GradeRoute = GradeRouteImport.update({
+const AuthenticatedGradeRoute = AuthenticatedGradeRouteImport.update({
   id: '/grade',
   path: '/grade',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const InsightRoute = InsightRouteImport.update({
+const AuthenticatedInsightRoute = AuthenticatedInsightRouteImport.update({
   id: '/insight',
   path: '/insight',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const TraceRoute = TraceRouteImport.update({
+const AuthenticatedTraceRoute = AuthenticatedTraceRouteImport.update({
   id: '/trace',
   path: '/trace',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const TriageRoute = TriageRouteImport.update({
+const AuthenticatedTriageRoute = AuthenticatedTriageRouteImport.update({
   id: '/triage',
   path: '/triage',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const VerifyCertIdRoute = VerifyCertIdRouteImport.update({
+  id: '/verify/$certId',
+  path: '/verify/$certId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CertifyIndexRoute = CertifyIndexRouteImport.update({
+const AuthenticatedCertifyIndexRoute =
+  AuthenticatedCertifyIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedCertifyRoute,
+  } as any)
+const AuthenticatedCertifyCertIdRoute =
+  AuthenticatedCertifyCertIdRouteImport.update({
+    id: '/$certId',
+    path: '/$certId',
+    getParentRoute: () => AuthenticatedCertifyRoute,
+  } as any)
+const AuthenticatedTraceIndexRoute = AuthenticatedTraceIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => CertifyRoute,
+  getParentRoute: () => AuthenticatedTraceRoute,
 } as any)
-const CertifyCertIdRoute = CertifyCertIdRouteImport.update({
-  id: '/$certId',
-  path: '/$certId',
-  getParentRoute: () => CertifyRoute,
-} as any)
-const TraceIndexRoute = TraceIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => TraceRoute,
-} as any)
-const TraceRollIdRoute = TraceRollIdRouteImport.update({
-  id: '/$rollId',
-  path: '/$rollId',
-  getParentRoute: () => TraceRoute,
-} as any)
+const AuthenticatedTraceRollIdRoute =
+  AuthenticatedTraceRollIdRouteImport.update({
+    id: '/$rollId',
+    path: '/$rollId',
+    getParentRoute: () => AuthenticatedTraceRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/analytics': typeof AnalyticsRoute
-  '/capture': typeof CaptureRoute
-  '/certify': typeof CertifyRouteWithChildren
-  '/configuration': typeof ConfigurationRoute
-  '/devices': typeof DevicesRoute
-  '/grade': typeof GradeRoute
-  '/insight': typeof InsightRoute
-  '/trace': typeof TraceRouteWithChildren
-  '/triage': typeof TriageRoute
-  '/certify/$certId': typeof CertifyCertIdRoute
-  '/trace/$rollId': typeof TraceRollIdRoute
-  '/certify/': typeof CertifyIndexRoute
-  '/trace/': typeof TraceIndexRoute
+  '/': typeof AuthenticatedIndexRoute
+  '/auth': typeof AuthRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/analytics': typeof AuthenticatedAnalyticsRoute
+  '/capture': typeof AuthenticatedCaptureRoute
+  '/certify': typeof AuthenticatedCertifyRouteWithChildren
+  '/configuration': typeof AuthenticatedConfigurationRoute
+  '/devices': typeof AuthenticatedDevicesRoute
+  '/grade': typeof AuthenticatedGradeRoute
+  '/insight': typeof AuthenticatedInsightRoute
+  '/trace': typeof AuthenticatedTraceRouteWithChildren
+  '/triage': typeof AuthenticatedTriageRoute
+  '/verify/$certId': typeof VerifyCertIdRoute
+  '/certify/$certId': typeof AuthenticatedCertifyCertIdRoute
+  '/trace/$rollId': typeof AuthenticatedTraceRollIdRoute
+  '/certify/': typeof AuthenticatedCertifyIndexRoute
+  '/trace/': typeof AuthenticatedTraceIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/analytics': typeof AnalyticsRoute
-  '/capture': typeof CaptureRoute
-  '/configuration': typeof ConfigurationRoute
-  '/devices': typeof DevicesRoute
-  '/grade': typeof GradeRoute
-  '/insight': typeof InsightRoute
-  '/triage': typeof TriageRoute
-  '/certify/$certId': typeof CertifyCertIdRoute
-  '/trace/$rollId': typeof TraceRollIdRoute
-  '/certify': typeof CertifyIndexRoute
-  '/trace': typeof TraceIndexRoute
+  '/auth': typeof AuthRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/analytics': typeof AuthenticatedAnalyticsRoute
+  '/capture': typeof AuthenticatedCaptureRoute
+  '/configuration': typeof AuthenticatedConfigurationRoute
+  '/devices': typeof AuthenticatedDevicesRoute
+  '/grade': typeof AuthenticatedGradeRoute
+  '/insight': typeof AuthenticatedInsightRoute
+  '/triage': typeof AuthenticatedTriageRoute
+  '/verify/$certId': typeof VerifyCertIdRoute
+  '/': typeof AuthenticatedIndexRoute
+  '/certify/$certId': typeof AuthenticatedCertifyCertIdRoute
+  '/trace/$rollId': typeof AuthenticatedTraceRollIdRoute
+  '/certify': typeof AuthenticatedCertifyIndexRoute
+  '/trace': typeof AuthenticatedTraceIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/analytics': typeof AnalyticsRoute
-  '/capture': typeof CaptureRoute
-  '/certify': typeof CertifyRouteWithChildren
-  '/configuration': typeof ConfigurationRoute
-  '/devices': typeof DevicesRoute
-  '/grade': typeof GradeRoute
-  '/insight': typeof InsightRoute
-  '/trace': typeof TraceRouteWithChildren
-  '/triage': typeof TriageRoute
-  '/certify/$certId': typeof CertifyCertIdRoute
-  '/trace/$rollId': typeof TraceRollIdRoute
-  '/certify/': typeof CertifyIndexRoute
-  '/trace/': typeof TraceIndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
+  '/_authenticated/capture': typeof AuthenticatedCaptureRoute
+  '/_authenticated/certify': typeof AuthenticatedCertifyRouteWithChildren
+  '/_authenticated/configuration': typeof AuthenticatedConfigurationRoute
+  '/_authenticated/devices': typeof AuthenticatedDevicesRoute
+  '/_authenticated/grade': typeof AuthenticatedGradeRoute
+  '/_authenticated/insight': typeof AuthenticatedInsightRoute
+  '/_authenticated/trace': typeof AuthenticatedTraceRouteWithChildren
+  '/_authenticated/triage': typeof AuthenticatedTriageRoute
+  '/verify/$certId': typeof VerifyCertIdRoute
+  '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/certify/$certId': typeof AuthenticatedCertifyCertIdRoute
+  '/_authenticated/trace/$rollId': typeof AuthenticatedTraceRollIdRoute
+  '/_authenticated/certify/': typeof AuthenticatedCertifyIndexRoute
+  '/_authenticated/trace/': typeof AuthenticatedTraceIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/auth'
+    | '/reset-password'
     | '/analytics'
     | '/capture'
     | '/certify'
@@ -155,13 +194,15 @@ export interface FileRouteTypes {
     | '/insight'
     | '/trace'
     | '/triage'
+    | '/verify/$certId'
     | '/certify/$certId'
     | '/trace/$rollId'
     | '/certify/'
     | '/trace/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
+    | '/auth'
+    | '/reset-password'
     | '/analytics'
     | '/capture'
     | '/configuration'
@@ -169,180 +210,232 @@ export interface FileRouteTypes {
     | '/grade'
     | '/insight'
     | '/triage'
+    | '/verify/$certId'
+    | '/'
     | '/certify/$certId'
     | '/trace/$rollId'
     | '/certify'
     | '/trace'
   id:
     | '__root__'
-    | '/'
-    | '/analytics'
-    | '/capture'
-    | '/certify'
-    | '/configuration'
-    | '/devices'
-    | '/grade'
-    | '/insight'
-    | '/trace'
-    | '/triage'
-    | '/certify/$certId'
-    | '/trace/$rollId'
-    | '/certify/'
-    | '/trace/'
+    | '/_authenticated'
+    | '/auth'
+    | '/reset-password'
+    | '/_authenticated/analytics'
+    | '/_authenticated/capture'
+    | '/_authenticated/certify'
+    | '/_authenticated/configuration'
+    | '/_authenticated/devices'
+    | '/_authenticated/grade'
+    | '/_authenticated/insight'
+    | '/_authenticated/trace'
+    | '/_authenticated/triage'
+    | '/verify/$certId'
+    | '/_authenticated/'
+    | '/_authenticated/certify/$certId'
+    | '/_authenticated/trace/$rollId'
+    | '/_authenticated/certify/'
+    | '/_authenticated/trace/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  AnalyticsRoute: typeof AnalyticsRoute
-  CaptureRoute: typeof CaptureRoute
-  CertifyRoute: typeof CertifyRouteWithChildren
-  ConfigurationRoute: typeof ConfigurationRoute
-  DevicesRoute: typeof DevicesRoute
-  GradeRoute: typeof GradeRoute
-  InsightRoute: typeof InsightRoute
-  TraceRoute: typeof TraceRouteWithChildren
-  TriageRoute: typeof TriageRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
+  VerifyCertIdRoute: typeof VerifyCertIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/': {
+      id: '/_authenticated/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/analytics': {
-      id: '/analytics'
+    '/_authenticated/analytics': {
+      id: '/_authenticated/analytics'
       path: '/analytics'
       fullPath: '/analytics'
-      preLoaderRoute: typeof AnalyticsRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedAnalyticsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/capture': {
-      id: '/capture'
+    '/_authenticated/capture': {
+      id: '/_authenticated/capture'
       path: '/capture'
       fullPath: '/capture'
-      preLoaderRoute: typeof CaptureRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedCaptureRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/certify': {
-      id: '/certify'
+    '/_authenticated/certify': {
+      id: '/_authenticated/certify'
       path: '/certify'
       fullPath: '/certify'
-      preLoaderRoute: typeof CertifyRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedCertifyRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/configuration': {
-      id: '/configuration'
+    '/_authenticated/configuration': {
+      id: '/_authenticated/configuration'
       path: '/configuration'
       fullPath: '/configuration'
-      preLoaderRoute: typeof ConfigurationRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedConfigurationRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/devices': {
-      id: '/devices'
+    '/_authenticated/devices': {
+      id: '/_authenticated/devices'
       path: '/devices'
       fullPath: '/devices'
-      preLoaderRoute: typeof DevicesRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedDevicesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/grade': {
-      id: '/grade'
+    '/_authenticated/grade': {
+      id: '/_authenticated/grade'
       path: '/grade'
       fullPath: '/grade'
-      preLoaderRoute: typeof GradeRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedGradeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/insight': {
-      id: '/insight'
+    '/_authenticated/insight': {
+      id: '/_authenticated/insight'
       path: '/insight'
       fullPath: '/insight'
-      preLoaderRoute: typeof InsightRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedInsightRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/trace': {
-      id: '/trace'
+    '/_authenticated/trace': {
+      id: '/_authenticated/trace'
       path: '/trace'
       fullPath: '/trace'
-      preLoaderRoute: typeof TraceRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedTraceRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/triage': {
-      id: '/triage'
+    '/_authenticated/triage': {
+      id: '/_authenticated/triage'
       path: '/triage'
       fullPath: '/triage'
-      preLoaderRoute: typeof TriageRouteImport
+      preLoaderRoute: typeof AuthenticatedTriageRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/verify/$certId': {
+      id: '/verify/$certId'
+      path: '/verify/$certId'
+      fullPath: '/verify/$certId'
+      preLoaderRoute: typeof VerifyCertIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/certify/': {
-      id: '/certify/'
+    '/_authenticated/certify/': {
+      id: '/_authenticated/certify/'
       path: '/'
       fullPath: '/certify/'
-      preLoaderRoute: typeof CertifyIndexRouteImport
-      parentRoute: typeof CertifyRoute
+      preLoaderRoute: typeof AuthenticatedCertifyIndexRouteImport
+      parentRoute: typeof AuthenticatedCertifyRoute
     }
-    '/certify/$certId': {
-      id: '/certify/$certId'
+    '/_authenticated/certify/$certId': {
+      id: '/_authenticated/certify/$certId'
       path: '/$certId'
       fullPath: '/certify/$certId'
-      preLoaderRoute: typeof CertifyCertIdRouteImport
-      parentRoute: typeof CertifyRoute
+      preLoaderRoute: typeof AuthenticatedCertifyCertIdRouteImport
+      parentRoute: typeof AuthenticatedCertifyRoute
     }
-    '/trace/': {
-      id: '/trace/'
+    '/_authenticated/trace/': {
+      id: '/_authenticated/trace/'
       path: '/'
       fullPath: '/trace/'
-      preLoaderRoute: typeof TraceIndexRouteImport
-      parentRoute: typeof TraceRoute
+      preLoaderRoute: typeof AuthenticatedTraceIndexRouteImport
+      parentRoute: typeof AuthenticatedTraceRoute
     }
-    '/trace/$rollId': {
-      id: '/trace/$rollId'
+    '/_authenticated/trace/$rollId': {
+      id: '/_authenticated/trace/$rollId'
       path: '/$rollId'
       fullPath: '/trace/$rollId'
-      preLoaderRoute: typeof TraceRollIdRouteImport
-      parentRoute: typeof TraceRoute
+      preLoaderRoute: typeof AuthenticatedTraceRollIdRouteImport
+      parentRoute: typeof AuthenticatedTraceRoute
     }
   }
 }
 
-interface CertifyRouteChildren {
-  CertifyCertIdRoute: typeof CertifyCertIdRoute
-  CertifyIndexRoute: typeof CertifyIndexRoute
+interface AuthenticatedCertifyRouteChildren {
+  AuthenticatedCertifyCertIdRoute: typeof AuthenticatedCertifyCertIdRoute
+  AuthenticatedCertifyIndexRoute: typeof AuthenticatedCertifyIndexRoute
 }
 
-const CertifyRouteChildren: CertifyRouteChildren = {
-  CertifyCertIdRoute: CertifyCertIdRoute,
-  CertifyIndexRoute: CertifyIndexRoute,
+const AuthenticatedCertifyRouteChildren: AuthenticatedCertifyRouteChildren = {
+  AuthenticatedCertifyCertIdRoute: AuthenticatedCertifyCertIdRoute,
+  AuthenticatedCertifyIndexRoute: AuthenticatedCertifyIndexRoute,
 }
 
-const CertifyRouteWithChildren =
-  CertifyRoute._addFileChildren(CertifyRouteChildren)
+const AuthenticatedCertifyRouteWithChildren =
+  AuthenticatedCertifyRoute._addFileChildren(AuthenticatedCertifyRouteChildren)
 
-interface TraceRouteChildren {
-  TraceRollIdRoute: typeof TraceRollIdRoute
-  TraceIndexRoute: typeof TraceIndexRoute
+interface AuthenticatedTraceRouteChildren {
+  AuthenticatedTraceRollIdRoute: typeof AuthenticatedTraceRollIdRoute
+  AuthenticatedTraceIndexRoute: typeof AuthenticatedTraceIndexRoute
 }
 
-const TraceRouteChildren: TraceRouteChildren = {
-  TraceRollIdRoute: TraceRollIdRoute,
-  TraceIndexRoute: TraceIndexRoute,
+const AuthenticatedTraceRouteChildren: AuthenticatedTraceRouteChildren = {
+  AuthenticatedTraceRollIdRoute: AuthenticatedTraceRollIdRoute,
+  AuthenticatedTraceIndexRoute: AuthenticatedTraceIndexRoute,
 }
 
-const TraceRouteWithChildren = TraceRoute._addFileChildren(TraceRouteChildren)
+const AuthenticatedTraceRouteWithChildren =
+  AuthenticatedTraceRoute._addFileChildren(AuthenticatedTraceRouteChildren)
+
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
+  AuthenticatedCaptureRoute: typeof AuthenticatedCaptureRoute
+  AuthenticatedCertifyRoute: typeof AuthenticatedCertifyRouteWithChildren
+  AuthenticatedConfigurationRoute: typeof AuthenticatedConfigurationRoute
+  AuthenticatedDevicesRoute: typeof AuthenticatedDevicesRoute
+  AuthenticatedGradeRoute: typeof AuthenticatedGradeRoute
+  AuthenticatedInsightRoute: typeof AuthenticatedInsightRoute
+  AuthenticatedTraceRoute: typeof AuthenticatedTraceRouteWithChildren
+  AuthenticatedTriageRoute: typeof AuthenticatedTriageRoute
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
+  AuthenticatedCaptureRoute: AuthenticatedCaptureRoute,
+  AuthenticatedCertifyRoute: AuthenticatedCertifyRouteWithChildren,
+  AuthenticatedConfigurationRoute: AuthenticatedConfigurationRoute,
+  AuthenticatedDevicesRoute: AuthenticatedDevicesRoute,
+  AuthenticatedGradeRoute: AuthenticatedGradeRoute,
+  AuthenticatedInsightRoute: AuthenticatedInsightRoute,
+  AuthenticatedTraceRoute: AuthenticatedTraceRouteWithChildren,
+  AuthenticatedTriageRoute: AuthenticatedTriageRoute,
+  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  AnalyticsRoute: AnalyticsRoute,
-  CaptureRoute: CaptureRoute,
-  CertifyRoute: CertifyRouteWithChildren,
-  ConfigurationRoute: ConfigurationRoute,
-  DevicesRoute: DevicesRoute,
-  GradeRoute: GradeRoute,
-  InsightRoute: InsightRoute,
-  TraceRoute: TraceRouteWithChildren,
-  TriageRoute: TriageRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
+  VerifyCertIdRoute: VerifyCertIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

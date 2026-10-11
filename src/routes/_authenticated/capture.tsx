@@ -13,8 +13,9 @@ import { AuditMeter } from "@/components/tensora/audit-meter";
 import { DefectLedger } from "@/components/tensora/defect-ledger";
 import { useTensora } from "@/lib/tensora/store";
 import { tabSearch } from "@/lib/tensora/search";
+import { useCan } from "@/lib/tensora/use-can";
 
-export const Route = createFileRoute("/capture")({
+export const Route = createFileRoute("/_authenticated/capture")({
   validateSearch: tabSearch,
   head: () => ({
     meta: [
@@ -31,6 +32,7 @@ function CapturePage() {
   const { tab = "live" } = Route.useSearch();
   const navigate = useNavigate({ from: "/capture" });
   const { activeRollId, activeSessionId } = useTensora();
+  const canInspect = useCan("inspect");
   const allDefects = useTensora((s) => s.defects);
   const defects = allDefects.filter((d) => d.rollId === activeRollId);
   const cluster = useTensora((s) => s.alerts.find((a) => a.id === "ALR-0091"));
@@ -57,7 +59,7 @@ function CapturePage() {
         <TabsContent value="live" className="space-y-4">
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
             <Panel title="Tensora Optical Inspection Station" bodyClassName="p-3">
-              <InspectionStation />
+              {canInspect ? <InspectionStation /> : <div className="grid aspect-video place-items-center rounded-lg border border-border bg-surface-2 p-6 text-center text-sm text-muted-foreground">Buyer Auditor accounts are read-only. Live inspection is available to plant inspectors.</div>}
             </Panel>
             <AuditMeter rollId={activeRollId} />
           </div>

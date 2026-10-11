@@ -6,8 +6,9 @@ import { PageHeader, Panel, Tag } from "@/components/tensora/ui";
 import { useTensora, rollStats } from "@/lib/tensora/store";
 import { gradeFor, systemLabel, systemUnit, type ScoringSystem } from "@/lib/tensora/scoring";
 import { tabSearch } from "@/lib/tensora/search";
+import { useCan } from "@/lib/tensora/use-can";
 
-export const Route = createFileRoute("/grade")({
+export const Route = createFileRoute("/_authenticated/grade")({
   validateSearch: tabSearch,
   head: () => ({
     meta: [
@@ -25,6 +26,7 @@ function GradePage() {
   const navigate = useNavigate({ from: "/grade" });
   const state = useTensora();
   const { buyers, rolls, updateBuyer } = state;
+  const canEdit = useCan("certify");
   return (
     <div className="mx-auto max-w-[1600px]">
       <PageHeader module="Tensora Grade" title="Automatic Roll Grading" description="Each buyer's standard is applied automatically the moment a roll is inspected." />
@@ -57,7 +59,7 @@ function GradePage() {
                 <div className="space-y-3">
                   <div>
                     <div className="label-caps mb-1.5">Scoring system</div>
-                    <Select value={b.system} onValueChange={(v) => updateBuyer(b.id, { system: v as ScoringSystem })}>
+                    <Select disabled={!canEdit} value={b.system} onValueChange={(v) => updateBuyer(b.id, { system: v as ScoringSystem })}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                         {(["4pt", "10pt", "g78"] as ScoringSystem[]).map((s) => <SelectItem key={s} value={s}>{systemLabel[s]}</SelectItem>)}
@@ -66,7 +68,7 @@ function GradePage() {
                   </div>
                   <div>
                     <div className="label-caps mb-1.5">Acceptance limit ({systemUnit[b.system]})</div>
-                    <Input type="number" value={b.limit} onChange={(e) => updateBuyer(b.id, { limit: Number(e.target.value) || 0 })} />
+                    <Input type="number" disabled={!canEdit} value={b.limit} onChange={(e) => updateBuyer(b.id, { limit: Number(e.target.value) || 0 })} />
                   </div>
                   <div className="grid grid-cols-3 gap-2 text-center font-mono text-[10px]">
                     <div className="rounded border border-pass/40 bg-pass/10 p-1.5 text-pass">A ≤ {(b.limit * 0.6).toFixed(1)}</div>

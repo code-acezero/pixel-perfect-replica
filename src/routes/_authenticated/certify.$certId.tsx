@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { CertificateDocument } from "@/components/tensora/certificate";
 import { useTensora } from "@/lib/tensora/store";
 
-export const Route = createFileRoute("/certify/$certId")({
+export const Route = createFileRoute("/_authenticated/certify/$certId")({
   head: ({ params }) => ({
     meta: [
       { title: `${params.certId} — Araneid Quality Audit Certificate` },

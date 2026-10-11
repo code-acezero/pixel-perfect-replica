@@ -8,7 +8,7 @@ import { PageHeader, Panel, Tag } from "@/components/tensora/ui";
 import { useTensora } from "@/lib/tensora/store";
 import type { Device } from "@/lib/tensora/data";
 
-export const Route = createFileRoute("/devices")({
+export const Route = createFileRoute("/_authenticated/devices")({
   head: () => ({
     meta: [
       { title: "Tensora Devices — Camera Fleet · Araneid" },

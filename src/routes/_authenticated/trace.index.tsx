@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { PageHeader, Panel, Tag } from "@/components/tensora/ui";
 import { useTensora, rollStats } from "@/lib/tensora/store";
 
-export const Route = createFileRoute("/trace/")({
+export const Route = createFileRoute("/_authenticated/trace/")({
   head: () => ({
     meta: [
       { title: "Tensora Trace — Roll Register · Araneid" },

@@ -7,8 +7,9 @@ import { PageHeader, Panel, Tag, fmtDateTime } from "@/components/tensora/ui";
 import { useTensora } from "@/lib/tensora/store";
 import { tabSearch } from "@/lib/tensora/search";
 import { cn } from "@/lib/utils";
+import { useCan } from "@/lib/tensora/use-can";
 
-export const Route = createFileRoute("/insight")({
+export const Route = createFileRoute("/_authenticated/insight")({
   validateSearch: tabSearch,
   head: () => ({
     meta: [
@@ -32,6 +33,7 @@ function InsightPage() {
   const { tab = "alerts" } = Route.useSearch();
   const navigate = useNavigate({ from: "/insight" });
   const { alerts, dismissAlert, defects } = useTensora();
+  const canReview = useCan("review");
   const byClass = Object.entries(
     defects.reduce<Record<string, number>>((a, d) => ((a[d.cls] = (a[d.cls] ?? 0) + 1), a), {}),
   ).map(([cls, n]) => ({ cls, n }));
@@ -62,7 +64,7 @@ function InsightPage() {
                   {a.savings && <span className="font-mono text-pass">Estimated scrap saved: ${a.savings}</span>}
                 </div>
               </div>
-              <Button size="icon" variant="ghost" onClick={() => dismissAlert(a.id)} aria-label="Acknowledge"><X className="h-4 w-4" /></Button>
+              <Button size="icon" variant="ghost" disabled={!canReview} onClick={() => dismissAlert(a.id)} aria-label="Acknowledge"><X className="h-4 w-4" /></Button>
             </div>
           ))}
         </TabsContent>
