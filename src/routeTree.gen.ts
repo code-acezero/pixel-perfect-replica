@@ -10,8 +10,11 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as CaptureRouteImport } from './routes/capture'
 import { Route as CertifyRouteImport } from './routes/certify'
+import { Route as ConfigurationRouteImport } from './routes/configuration'
+import { Route as DevicesRouteImport } from './routes/devices'
 import { Route as GradeRouteImport } from './routes/grade'
 import { Route as InsightRouteImport } from './routes/insight'
 import { Route as TraceRouteImport } from './routes/trace'
@@ -26,6 +29,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AnalyticsRoute = AnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CaptureRoute = CaptureRouteImport.update({
   id: '/capture',
   path: '/capture',
@@ -34,6 +42,16 @@ const CaptureRoute = CaptureRouteImport.update({
 const CertifyRoute = CertifyRouteImport.update({
   id: '/certify',
   path: '/certify',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConfigurationRoute = ConfigurationRouteImport.update({
+  id: '/configuration',
+  path: '/configuration',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DevicesRoute = DevicesRouteImport.update({
+  id: '/devices',
+  path: '/devices',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GradeRoute = GradeRouteImport.update({
@@ -79,8 +97,11 @@ const TraceRollIdRoute = TraceRollIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/analytics': typeof AnalyticsRoute
   '/capture': typeof CaptureRoute
   '/certify': typeof CertifyRouteWithChildren
+  '/configuration': typeof ConfigurationRoute
+  '/devices': typeof DevicesRoute
   '/grade': typeof GradeRoute
   '/insight': typeof InsightRoute
   '/trace': typeof TraceRouteWithChildren
@@ -92,7 +113,10 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/analytics': typeof AnalyticsRoute
   '/capture': typeof CaptureRoute
+  '/configuration': typeof ConfigurationRoute
+  '/devices': typeof DevicesRoute
   '/grade': typeof GradeRoute
   '/insight': typeof InsightRoute
   '/triage': typeof TriageRoute
@@ -104,8 +128,11 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/analytics': typeof AnalyticsRoute
   '/capture': typeof CaptureRoute
   '/certify': typeof CertifyRouteWithChildren
+  '/configuration': typeof ConfigurationRoute
+  '/devices': typeof DevicesRoute
   '/grade': typeof GradeRoute
   '/insight': typeof InsightRoute
   '/trace': typeof TraceRouteWithChildren
@@ -119,8 +146,11 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/analytics'
     | '/capture'
     | '/certify'
+    | '/configuration'
+    | '/devices'
     | '/grade'
     | '/insight'
     | '/trace'
@@ -132,7 +162,10 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/analytics'
     | '/capture'
+    | '/configuration'
+    | '/devices'
     | '/grade'
     | '/insight'
     | '/triage'
@@ -143,8 +176,11 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/analytics'
     | '/capture'
     | '/certify'
+    | '/configuration'
+    | '/devices'
     | '/grade'
     | '/insight'
     | '/trace'
@@ -157,8 +193,11 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AnalyticsRoute: typeof AnalyticsRoute
   CaptureRoute: typeof CaptureRoute
   CertifyRoute: typeof CertifyRouteWithChildren
+  ConfigurationRoute: typeof ConfigurationRoute
+  DevicesRoute: typeof DevicesRoute
   GradeRoute: typeof GradeRoute
   InsightRoute: typeof InsightRoute
   TraceRoute: typeof TraceRouteWithChildren
@@ -174,6 +213,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/analytics': {
+      id: '/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AnalyticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/capture': {
       id: '/capture'
       path: '/capture'
@@ -186,6 +232,20 @@ declare module '@tanstack/react-router' {
       path: '/certify'
       fullPath: '/certify'
       preLoaderRoute: typeof CertifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/configuration': {
+      id: '/configuration'
+      path: '/configuration'
+      fullPath: '/configuration'
+      preLoaderRoute: typeof ConfigurationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/devices': {
+      id: '/devices'
+      path: '/devices'
+      fullPath: '/devices'
+      preLoaderRoute: typeof DevicesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/grade': {
@@ -274,8 +334,11 @@ const TraceRouteWithChildren = TraceRoute._addFileChildren(TraceRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AnalyticsRoute: AnalyticsRoute,
   CaptureRoute: CaptureRoute,
   CertifyRoute: CertifyRouteWithChildren,
+  ConfigurationRoute: ConfigurationRoute,
+  DevicesRoute: DevicesRoute,
   GradeRoute: GradeRoute,
   InsightRoute: InsightRoute,
   TraceRoute: TraceRouteWithChildren,
