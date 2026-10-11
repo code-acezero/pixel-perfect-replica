@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageHeader, Panel, Tag, fmtDateTime } from "@/components/tensora/ui";
 import { useTensora, rollStats } from "@/lib/tensora/store";
+import { useCan } from "@/lib/tensora/use-can";
 
 export const Route = createFileRoute("/_authenticated/certify/")({
   validateSearch: (s: Record<string, unknown>): { roll?: string } => (typeof s["roll"] === "string" ? { roll: s["roll"] } : {}),
@@ -25,6 +26,7 @@ function CertifyPage() {
   const navigate = useNavigate();
   const state = useTensora();
   const { certificates, rolls, issueCertificate, activeRollId } = state;
+  const canCertify = useCan("certify");
   const [roll, setRoll] = useState(preset ?? activeRollId);
   const s = rollStats(state, roll);
 
@@ -46,13 +48,14 @@ function CertifyPage() {
           </div>
           <Button
             className="mt-4 h-11 w-full gap-2"
+            disabled={!canCertify}
             onClick={() => {
               const id = issueCertificate(roll);
               toast.success(`Certificate ${id} issued`);
               navigate({ to: "/certify/$certId", params: { certId: id } });
             }}
           >
-            <FileBadge className="h-4 w-4" /> Generate certificate
+            <FileBadge className="h-4 w-4" /> {canCertify ? "Generate certificate" : "Quality Manager sign-off required"}
           </Button>
         </Panel>
         <Panel title={`Certificate register · ${certificates.length}`} bodyClassName="p-0">
