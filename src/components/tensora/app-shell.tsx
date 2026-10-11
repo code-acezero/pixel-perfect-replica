@@ -1,5 +1,9 @@
 import type { ReactNode } from "react";
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { LogOut } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { ROLE_LABEL } from "@/lib/tensora/permissions";
 import { Bell, Camera, ClipboardCheck, Activity, Menu, Radio, MonitorPlay, Search } from "lucide-react";
 import {
   Sidebar,
@@ -17,11 +21,10 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { NAV_GROUPS } from "./nav";
 import { Wordmark } from "./brand";
-import { ROLES, useTensora, type Role } from "@/lib/tensora/store";
+import { useTensora } from "@/lib/tensora/store";
 import { SITE } from "@/lib/tensora/data";
 import { cn } from "@/lib/utils";
 import { fmtTime } from "./ui";
@@ -110,8 +113,42 @@ function AlertsBell() {
   );
 }
 
+function UserMenu() {
+  const me = useTensora((s) => s.me);
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  if (!me) return null;
+  const signOut = async () => {
+    await queryClient.cancelQueries();
+    queryClient.clear();
+    await supabase.auth.signOut();
+    navigate({ to: "/auth", replace: true });
+  };
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button className="flex h-9 items-center gap-2 rounded-md border border-border bg-surface-2 px-2 text-xs hover:bg-accent" aria-label="Account">
+          <span className="grid h-6 w-6 place-items-center rounded-full bg-primary/20 font-mono text-[10px] font-bold text-primary">{me.name.slice(0, 2).toUpperCase()}</span>
+          <span className="hidden max-w-[120px] truncate text-left sm:block">
+            <span className="block truncate font-medium">{me.name}</span>
+            <span className="block truncate text-[10px] text-muted-foreground">{ROLE_LABEL[me.role]}</span>
+          </span>
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-64 p-3">
+        <div className="text-sm font-medium">{me.name}</div>
+        <div className="truncate text-xs text-muted-foreground">{me.email}</div>
+        <div className="mt-2 inline-block rounded border border-telemetry/40 px-1.5 py-0.5 font-mono text-[10px] text-telemetry">{ROLE_LABEL[me.role]}</div>
+        <button onClick={signOut} className="mt-3 flex w-full items-center gap-2 rounded-md border border-border px-3 py-2 text-sm hover:bg-accent">
+          <LogOut className="h-4 w-4" /> Sign out
+        </button>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 function TopBar() {
-  const { streamMode, setStreamMode, role, setRole, activeRollId, rolls } = useTensora();
+  const { streamMode, setStreamMode, activeRollId, rolls } = useTensora();
   const roll = rolls.find((r) => r.id === activeRollId)!;
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur">
@@ -143,16 +180,7 @@ function TopBar() {
             <Switch checked={streamMode === "live"} onCheckedChange={(v) => setStreamMode(v ? "live" : "sim")} aria-label="Toggle live camera" />
           </label>
           <AlertsBell />
-          <Select value={role} onValueChange={(v) => setRole(v as Role)}>
-            <SelectTrigger className="hidden h-9 w-[150px] text-xs sm:flex">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {ROLES.map((r) => (
-                <SelectItem key={r} value={r}>{r}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <UserMenu />
         </div>
       </div>
     </header>
