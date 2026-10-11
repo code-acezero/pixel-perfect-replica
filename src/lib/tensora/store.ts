@@ -114,7 +114,8 @@ export const useTensora = create<TensoraState>((set, get) => ({
       const i = s.defects.findIndex((x) => x.id === d.id);
       if (i === -1) return { defects: [d, ...s.defects] };
       const next = s.defects.slice();
-      next[i] = { ...d, thumb: d.thumb ?? s.defects[i]!.thumb };
+      const thumb = d.thumb ?? s.defects[i]!.thumb;
+      next[i] = thumb ? { ...d, thumb } : d;
       return { defects: next };
     }),
   upsertAlert: (a, removedId) =>
@@ -175,7 +176,7 @@ export const useTensora = create<TensoraState>((set, get) => ({
   reclassify: (id, cls, points) => {
     const reviewer = get().me?.name ?? "You";
     const prev = get().defects.find((d) => d.id === id);
-    const originalCls = prev?.originalCls ?? prev?.cls;
+    const originalCls = (prev?.originalCls ?? prev?.cls ?? cls) as DefectClass;
     set((s) => ({
       defects: s.defects.map((d) => (d.id === id ? { ...d, originalCls, cls, points, status: "reclassified", reviewer } : d)),
       feedbackCount: s.feedbackCount + 1,

@@ -28,9 +28,9 @@ export function UsersRoles() {
 
   const setRole = async (userId: string, role: DbRole) => {
     const del = await supabase.from("user_roles").delete().eq("user_id", userId);
-    if (del.error) return toast.error(del.error.message);
+    if (del.error) { toast.error(del.error.message); return; }
     const ins = await supabase.from("user_roles").insert({ user_id: userId, role });
-    if (ins.error) return toast.error(ins.error.message);
+    if (ins.error) { toast.error(ins.error.message); return; }
     toast.success(`Role set to ${ROLE_LABEL[role]}`);
     void qc.invalidateQueries({ queryKey: ["users-roles"] });
   };

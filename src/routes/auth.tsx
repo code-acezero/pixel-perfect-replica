@@ -20,7 +20,7 @@ function safeRedirect(v: unknown) {
 }
 
 export const Route = createFileRoute("/auth")({
-  validateSearch: (s: Record<string, unknown>) => ({ redirect: typeof s.redirect === "string" ? s.redirect : undefined }),
+  validateSearch: (s: Record<string, unknown>) => ({ redirect: typeof s["redirect"] === "string" ? (s["redirect"] as string) : undefined }),
   head: () => ({
     meta: [
       { title: "Sign in — Tensora by Araneid" },
@@ -46,7 +46,7 @@ function AuthPage() {
     setBusy(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     navigate({ to: target, replace: true });
   };
 
@@ -59,7 +59,7 @@ function AuthPage() {
       options: { emailRedirectTo: window.location.origin + target, data: { full_name: name } },
     });
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     if (data.session) navigate({ to: target, replace: true });
     else toast.success("Check your email to confirm your account");
   };
@@ -67,13 +67,13 @@ function AuthPage() {
   const google = async () => {
     if (target !== "/") sessionStorage.setItem("tensora-after-auth", target);
     const res = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-    if (res.error) return toast.error(res.error.message ?? "Google sign-in failed");
+    if (res.error) { toast.error(res.error.message ?? "Google sign-in failed"); return; }
     if (res.redirected) return;
     navigate({ to: target, replace: true });
   };
 
   const forgot = async () => {
-    if (!email) return toast("Enter your email first");
+    if (!email) { toast("Enter your email first"); return; }
     const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/reset-password` });
     if (error) toast.error(error.message);
     else toast.success("Password reset link sent");

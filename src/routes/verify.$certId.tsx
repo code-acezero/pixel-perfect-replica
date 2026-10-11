@@ -54,7 +54,7 @@ function VerifyPage() {
             </dl>
           </>
         )}
-        <p className="mt-6 text-center font-mono text-[10px] text-muted-foreground"><Link to="/auth" className="hover:text-foreground">Tensora sign in</Link> · © Araneid Industrial Systems</p>
+        <p className="mt-6 text-center font-mono text-[10px] text-muted-foreground"><Link to="/auth" search={{ redirect: undefined }} className="hover:text-foreground">Tensora sign in</Link> · © Araneid Industrial Systems</p>
       </div>
     </div>
   );
