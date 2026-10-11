@@ -10,33 +10,88 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CaptureRouteImport } from './routes/capture'
+import { Route as TraceRouteImport } from './routes/trace'
+import { Route as TriageRouteImport } from './routes/triage'
+import { Route as TraceIndexRouteImport } from './routes/trace.index'
+import { Route as TraceRollIdRouteImport } from './routes/trace.$rollId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CaptureRoute = CaptureRouteImport.update({
+  id: '/capture',
+  path: '/capture',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TraceRoute = TraceRouteImport.update({
+  id: '/trace',
+  path: '/trace',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TriageRoute = TriageRouteImport.update({
+  id: '/triage',
+  path: '/triage',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TraceIndexRoute = TraceIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => TraceRoute,
+} as any)
+const TraceRollIdRoute = TraceRollIdRouteImport.update({
+  id: '/$rollId',
+  path: '/$rollId',
+  getParentRoute: () => TraceRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/capture': typeof CaptureRoute
+  '/trace': typeof TraceRouteWithChildren
+  '/triage': typeof TriageRoute
+  '/trace/$rollId': typeof TraceRollIdRoute
+  '/trace/': typeof TraceIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/capture': typeof CaptureRoute
+  '/triage': typeof TriageRoute
+  '/trace/$rollId': typeof TraceRollIdRoute
+  '/trace': typeof TraceIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/capture': typeof CaptureRoute
+  '/trace': typeof TraceRouteWithChildren
+  '/triage': typeof TriageRoute
+  '/trace/$rollId': typeof TraceRollIdRoute
+  '/trace/': typeof TraceIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    '/' | '/capture' | '/trace' | '/triage' | '/trace/$rollId' | '/trace/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/capture' | '/triage' | '/trace/$rollId' | '/trace'
+  id:
+    | '__root__'
+    | '/'
+    | '/capture'
+    | '/trace'
+    | '/triage'
+    | '/trace/$rollId'
+    | '/trace/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CaptureRoute: typeof CaptureRoute
+  TraceRoute: typeof TraceRouteWithChildren
+  TriageRoute: typeof TriageRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +103,61 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/capture': {
+      id: '/capture'
+      path: '/capture'
+      fullPath: '/capture'
+      preLoaderRoute: typeof CaptureRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trace': {
+      id: '/trace'
+      path: '/trace'
+      fullPath: '/trace'
+      preLoaderRoute: typeof TraceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/triage': {
+      id: '/triage'
+      path: '/triage'
+      fullPath: '/triage'
+      preLoaderRoute: typeof TriageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trace/': {
+      id: '/trace/'
+      path: '/'
+      fullPath: '/trace/'
+      preLoaderRoute: typeof TraceIndexRouteImport
+      parentRoute: typeof TraceRoute
+    }
+    '/trace/$rollId': {
+      id: '/trace/$rollId'
+      path: '/$rollId'
+      fullPath: '/trace/$rollId'
+      preLoaderRoute: typeof TraceRollIdRouteImport
+      parentRoute: typeof TraceRoute
+    }
   }
 }
 
+interface TraceRouteChildren {
+  TraceRollIdRoute: typeof TraceRollIdRoute
+  TraceIndexRoute: typeof TraceIndexRoute
+}
+
+const TraceRouteChildren: TraceRouteChildren = {
+  TraceRollIdRoute: TraceRollIdRoute,
+  TraceIndexRoute: TraceIndexRoute,
+}
+
+const TraceRouteWithChildren = TraceRoute._addFileChildren(TraceRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CaptureRoute: CaptureRoute,
+  TraceRoute: TraceRouteWithChildren,
+  TriageRoute: TriageRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
