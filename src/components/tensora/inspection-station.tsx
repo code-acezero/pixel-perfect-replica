@@ -6,6 +6,8 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DEFECT_CLASSES, DEFAULT_POINTS, type DefectClass } from "@/lib/tensora/data";
 import { useTensora } from "@/lib/tensora/store";
+import { useServerFn } from "@tanstack/react-start";
+import { analyzeFrame } from "@/lib/tensora/ai.functions";
 
 interface Det {
   cls: DefectClass;
@@ -95,6 +97,8 @@ export function InspectionStation() {
   const [manualOpen, setManualOpen] = useState(false);
   const [manualCls, setManualCls] = useState<DefectClass>("Needle Line");
   const [manualPts, setManualPts] = useState("2");
+  const [aiStatus, setAiStatus] = useState<{ state: "idle" | "scanning" | "error"; tip: string; msg?: string }>({ state: "idle", tip: "" });
+  const detect = useServerFn(analyzeFrame);
 
   const { streamMode, paused, setPaused, speed, advance, addDefect, activeRollId, activeSessionId, setStreamMode } = useTensora();
   const roll = useTensora((s) => s.rolls.find((r) => r.id === s.activeRollId)!);
@@ -122,16 +126,62 @@ export function InspectionStation() {
     return () => stream?.getTracks().forEach((t) => t.stop());
   }, [streamMode]);
 
+  // Real AI detection on live camera frames
+  useEffect(() => {
+    if (streamMode !== "live") return;
+    let stop = false;
+    let backoff = 0;
+    const grab = document.createElement("canvas");
+    grab.width = 768;
+    grab.height = 432;
+    const tick = async () => {
+      if (stop) return;
+      const v = videoRef.current;
+      if (!pausedRef.current && v && v.readyState >= 2) {
+        grab.getContext("2d")!.drawImage(v, 0, 0, grab.width, grab.height);
+        setAiStatus((a) => ({ ...a, state: "scanning" }));
+        const t0 = performance.now();
+        try {
+          const r = await detect({ data: { image: grab.toDataURL("image/jpeg", 0.75) } });
+          if (stop) return;
+          setInference(Math.round(performance.now() - t0));
+          if (r.error) {
+            backoff = Math.min(backoff + 1, 4);
+            setAiStatus({ state: "error", tip: "", msg: r.error });
+          } else {
+            backoff = 0;
+            setAiStatus({ state: "idle", tip: r.fabricVisible ? r.tip : "Point the camera at the fabric" });
+            const W = canvasRef.current?.width ?? 1280;
+            const H = canvasRef.current?.height ?? 720;
+            for (const d of r.defects) {
+              detsRef.current.push({
+                cls: d.cls, conf: d.confidence, points: d.points,
+                x: Math.min(Math.max(d.x, 0), 1), y: Math.max(d.y, 0) * H,
+                w: Math.max(d.w * W, 30), h: Math.max(d.h * H, 30), logged: false, ttl: 150,
+              });
+            }
+          }
+        } catch {
+          backoff = Math.min(backoff + 1, 4);
+          setAiStatus({ state: "error", tip: "", msg: "Vision service unreachable" });
+        }
+      }
+      if (!stop) setTimeout(tick, 3500 * 2 ** backoff);
+    };
+    const id = setTimeout(tick, 1500);
+    return () => { stop = true; clearTimeout(id); };
+  }, [streamMode, detect]);
+
   // Meter advance
   useEffect(() => {
     const id = setInterval(() => {
       if (!pausedRef.current) {
         advance(speed / 60);
-        setInference(14 + Math.round(Math.random() * 8));
+        if (streamMode !== "live") setInference(14 + Math.round(Math.random() * 8));
       }
     }, 1000);
     return () => clearInterval(id);
-  }, [advance, speed]);
+  }, [advance, speed, streamMode]);
 
   // Render loop
   useEffect(() => {
@@ -179,7 +229,7 @@ export function InspectionStation() {
       }
 
       // spawn
-      if (!isPaused && now > nextSpawn) {
+      if (!live && !isPaused && now > nextSpawn) {
         const cls = DEFECT_CLASSES[Math.floor(Math.random() * 5)]!;
         const w = cls === "Needle Line" ? 40 : 70 + Math.random() * 40;
         const h = cls === "Needle Line" ? 160 : 60 + Math.random() * 40;
@@ -288,6 +338,7 @@ export function InspectionStation() {
             <div className="space-y-1 rounded bg-background/75 px-2 py-1.5 backdrop-blur">
               <div>SPEED: {paused ? 0 : speed} m/min</div>
               <div>CAMERA: {streamMode === "live" ? "Device cam · Auto" : "4K 60fps Edge-Sync"}</div>
+              <div>AI: {streamMode === "live" ? (aiStatus.state === "scanning" ? "SCANNING…" : aiStatus.state === "error" ? "OFFLINE" : "TENSORA VISION") : "SIMULATED"}</div>
               <div>INFERENCE: {inference}ms</div>
             </div>
             <div className="space-y-1 rounded bg-background/75 px-2 py-1.5 text-right backdrop-blur">
@@ -300,6 +351,11 @@ export function InspectionStation() {
             </div>
           </div>
         </div>
+        {streamMode === "live" && !camError && (aiStatus.tip || aiStatus.msg) && (
+          <div className="pointer-events-none absolute inset-x-0 bottom-3 flex justify-center px-3">
+            <span className={aiStatus.msg ? "rounded bg-background/85 px-3 py-1.5 font-mono text-xs text-minor" : "rounded bg-background/85 px-3 py-1.5 font-mono text-xs text-telemetry"}>{aiStatus.msg ?? aiStatus.tip}</span>
+          </div>
+        )}
         {streamMode === "live" && camError && (
           <div className="absolute inset-0 grid place-items-center bg-background/85 p-6 text-center">
             <div>

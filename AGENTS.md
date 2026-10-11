@@ -17,3 +17,5 @@
 
 - All modules live under `src/routes/_authenticated/`; only /auth, /reset-password, /verify/$certId are public — why: plant data is private, certificates must be verifiable by buyers.
 - Role checks in UI use `useCan()`; database policies (`has_any_role`) are the real boundary.
+
+- AI calls (frame detection, roll reports) go through `ai.server.ts` (Responses API, streamed, strict JSON schema) wrapped by auth-protected server fns in `ai.functions.ts` — why: keys stay server-side and only signed-in users spend credits.

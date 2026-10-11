@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { CertificateDocument } from "@/components/tensora/certificate";
 import { useTensora } from "@/lib/tensora/store";
+import { AiReport } from "@/components/tensora/ai-report";
 
 export const Route = createFileRoute("/_authenticated/certify/$certId")({
   head: ({ params }) => ({
@@ -39,6 +40,7 @@ function CertView() {
         </div>
       </div>
       <CertificateDocument cert={cert} />
+      <div className="mt-4"><AiReport rollId={cert.rollId} /></div>
     </div>
   );
 }
