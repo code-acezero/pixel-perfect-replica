@@ -31,7 +31,8 @@ function CapturePage() {
   const { tab = "live" } = Route.useSearch();
   const navigate = useNavigate({ from: "/capture" });
   const { activeRollId, activeSessionId } = useTensora();
-  const defects = useTensora((s) => s.defects.filter((d) => d.rollId === s.activeRollId));
+  const allDefects = useTensora((s) => s.defects);
+  const defects = allDefects.filter((d) => d.rollId === activeRollId);
   const cluster = useTensora((s) => s.alerts.find((a) => a.id === "ALR-0091"));
 
   return (

@@ -243,8 +243,8 @@ export const alertsSeed: Alert[] = [
   {
     id: "ALR-0089",
     level: "major",
-    title: "Roll TX-8826 exceeds Zara limit",
-    body: "Score 29.7 pts/100 yd² vs. limit 20.0. Lycra Out pattern suggests elastane feeder tension issue on GZP-U01-L07.",
+    title: "Roll TX-8826 major defect cluster",
+    body: "Two 4-point Lycra Out holes and barre within 50 m. Lycra Out pattern suggests elastane feeder tension issue on GZP-U01-L07.",
     ts: BASE_TS - 6 * 3600e3,
     location: "GZP-U01 · Line #07",
     savings: 1240,
