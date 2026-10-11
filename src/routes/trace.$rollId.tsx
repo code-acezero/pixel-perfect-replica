@@ -25,7 +25,7 @@ export const Route = createFileRoute("/trace/$rollId")({
     ],
   }),
   notFoundComponent: () => <div className="p-10 text-center text-muted-foreground">Roll not found. <Link to="/trace" className="text-primary">Back to register</Link></div>,
-  errorComponent: ({ error }) => <div className="p-10 text-center text-major">{error.message}</div>,
+  errorComponent: ({ error }) => <div className="p-10 text-center text-major">{(error as Error).message}</div>,
   component: RollDetail,
 });
 

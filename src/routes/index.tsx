@@ -29,7 +29,7 @@ function CommandPage() {
   const navigate = useNavigate({ from: "/" });
   const state = useTensora();
   const { sessions, alerts, devices, rolls, defects } = state;
-  const data = trend30.slice(-RANGE[tab]);
+  const data = trend30.slice(-(RANGE[tab] ?? 7));
   const scores = rolls.map((r) => rollStats(state, r.id));
   const passRate = (scores.filter((s) => s.pass).length / scores.length) * 100;
   const avg = scores.reduce((a, s) => a + s.score, 0) / scores.length;

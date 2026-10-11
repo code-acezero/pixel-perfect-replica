@@ -180,7 +180,7 @@ export function InspectionStation() {
 
       // spawn
       if (!isPaused && now > nextSpawn) {
-        const cls = DEFECT_CLASSES[Math.floor(Math.random() * 5)];
+        const cls = DEFECT_CLASSES[Math.floor(Math.random() * 5)]!;
         const w = cls === "Needle Line" ? 40 : 70 + Math.random() * 40;
         const h = cls === "Needle Line" ? 160 : 60 + Math.random() * 40;
         detsRef.current.push({

@@ -8,7 +8,7 @@ import { PageHeader, Panel, Tag, fmtDateTime } from "@/components/tensora/ui";
 import { useTensora, rollStats } from "@/lib/tensora/store";
 
 export const Route = createFileRoute("/certify/")({
-  validateSearch: (s: Record<string, unknown>): { roll?: string } => (typeof s.roll === "string" ? { roll: s.roll } : {}),
+  validateSearch: (s: Record<string, unknown>): { roll?: string } => (typeof s["roll"] === "string" ? { roll: s["roll"] } : {}),
   head: () => ({
     meta: [
       { title: "Tensora Certify — Buyer Compliance · Araneid" },
