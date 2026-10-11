@@ -3,7 +3,7 @@ import type { Alert, Buyer, Certificate, Defect, DefectClass, Device, Roll, Sess
 import type { ScoringSystem } from "./scoring";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-type Row = Record<string, any>;
+type Row = any;
 const n = (v: unknown) => Number(v ?? 0);
 
 export const toBuyer = (r: Row): Buyer => ({ id: r.id, name: r.name, system: r.system as ScoringSystem, limit: n(r.score_limit), region: r.region });
@@ -22,11 +22,11 @@ export const toSession = (r: Row): Session => ({
 });
 export const toDefect = (r: Row, thumb?: string): Defect => ({
   id: r.id, rollId: r.roll_id, sessionId: r.session_id, ts: n(r.ts), meter: n(r.meter), x: n(r.x), cls: r.cls as DefectClass,
-  points: n(r.points), confidence: n(r.confidence), status: r.status, source: r.source, thumb,
-  reviewer: r.reviewer ?? undefined, originalCls: (r.original_cls ?? undefined) as DefectClass | undefined,
+  points: n(r.points), confidence: n(r.confidence), status: r.status, source: r.source,
+  ...(thumb ? { thumb } : {}), ...(r.reviewer ? { reviewer: r.reviewer } : {}), ...(r.original_cls ? { originalCls: r.original_cls as DefectClass } : {}),
 });
 export const toAlert = (r: Row): Alert => ({
-  id: r.id, level: r.level, title: r.title, body: r.body, ts: n(r.ts), location: r.location, savings: r.savings == null ? undefined : n(r.savings),
+  id: r.id, level: r.level, title: r.title, body: r.body, ts: n(r.ts), location: r.location, ...(r.savings == null ? {} : { savings: n(r.savings) }),
 });
 export const toCert = (r: Row): Certificate => ({ id: r.id, rollId: r.roll_id, issuedAt: n(r.issued_at), issuer: r.issuer, verdict: r.verdict, score: n(r.score) });
 

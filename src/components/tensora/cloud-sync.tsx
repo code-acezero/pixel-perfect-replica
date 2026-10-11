@@ -26,11 +26,12 @@ export function CloudSync({ userId, children }: { userId: string; children: Reac
     const channel = supabase
       .channel("tensora-live")
       .on("postgres_changes", { event: "*", schema: "public", table: "defects" }, async (p) => {
-        const row = p.new as Record<string, unknown>;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const row = p.new as any;
         if (!row?.id) return;
         const existing = st().defects.find((d) => d.id === row.id);
         let thumb = existing?.thumb;
-        if (!thumb && row.thumb_path) thumb = (await cloud.signThumbs([row]))[row.thumb_path as string];
+        if (!thumb && row.thumb_path) thumb = (await cloud.signThumbs([row]))[row.thumb_path];
         st().upsertDefect(cloud.toDefect(row, thumb));
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "alerts" }, (p) => {
