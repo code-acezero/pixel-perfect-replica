@@ -72,7 +72,11 @@ export const analyzeFrame = createServerFn({ method: "POST" })
       });
       r.defects = r.defects
         .filter((d) => d.confidence >= 0.5)
-        .map((d) => ({ ...d, points: Math.min(4, Math.max(1, Math.round(d.points))) }));
+        .map((d) => {
+          // Guard against pixel coordinates on the 768x432 frame.
+          const nx = (v: number, size: number) => (v > 1 ? v / size : v);
+          return { ...d, x: nx(d.x, 768), y: nx(d.y, 432), w: nx(d.w, 768), h: nx(d.h, 432), points: Math.min(4, Math.max(1, Math.round(d.points))) };
+        });
       return r;
     } catch (e) {
       console.error("analyzeFrame", e);
