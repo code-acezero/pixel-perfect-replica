@@ -3,8 +3,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { PageHeader, Panel, SeverityBadge, Tag } from "@/components/tensora/ui";
-import { DEFECT_CLASSES, DEFAULT_POINTS, INSPECTORS } from "@/lib/tensora/data";
-import { ROLES } from "@/lib/tensora/store";
+import { DEFECT_CLASSES, DEFAULT_POINTS } from "@/lib/tensora/data";
+import { UsersRoles } from "@/components/tensora/users-roles";
 import { tabSearch } from "@/lib/tensora/search";
 
 export const Route = createFileRoute("/_authenticated/configuration")({
@@ -77,15 +77,7 @@ function ConfigPage() {
           ))}
         </TabsContent>
         <TabsContent value="users">
-          <Panel bodyClassName="p-0">
-            {INSPECTORS.map((u, i) => (
-              <div key={u} className="flex items-center gap-3 border-b border-border px-4 py-3 last:border-0">
-                <span className="grid h-8 w-8 place-items-center rounded-full bg-secondary font-mono text-xs">{u.split(" ").pop()?.[0]}</span>
-                <span className="flex-1">{u}</span>
-                <Tag tone="telemetry">{ROLES[i % ROLES.length]}</Tag>
-              </div>
-            ))}
-          </Panel>
+          <UsersRoles />
         </TabsContent>
         <TabsContent value="audit">
           <Panel bodyClassName="p-0">
