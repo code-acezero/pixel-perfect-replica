@@ -36,9 +36,9 @@ export function AuditMeter({ rollId }: { rollId: string }) {
           ))}
         </div>
       </div>
-      <p className="mt-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
+      {buyer.system === "4pt" && <p className="mt-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
         Score = (Points × 3600) ÷ (Length yd × Width in) = ({points} × 3600) ÷ ({(roll.lengthM * 1.0936).toFixed(1)} × {roll.widthIn})
-      </p>
+      </p>}
     </Panel>
   );
 }
