@@ -1,31 +1,45 @@
-# Araneid / Tensora — Industrial Textile QA Platform
+# Tensora by Araneid — Textile Quality Intelligence Platform
 
-A multi-page, enterprise-style console with a collapsible sidebar, persistent top bar, and tabbed sub-views on every major page. Runs on a simulated factory stream (optional webcam), session data only.
+Tensora is the product; Araneid is the parent brand (endorsement only: "Tensora — an Araneid platform"). Multi-page, enterprise-style console with collapsible sidebar, persistent command bar, and tabbed sub-views. Runs on a simulated factory stream (optional webcam); session data only.
+
+## Branding & naming system
+- Wordmark: **TENSORA** with a small "by ARANEID" endorsement; footer "© Araneid Industrial Systems".
+- Modules use a consistent industrial naming convention (Tensora + function):
+  - **Tensora Command** — operations overview
+  - **Tensora Vision** — live optical inspection
+  - **Tensora Triage** — defect ledger / human-in-the-loop review
+  - **Tensora Trace** — rolls, lots & traceability
+  - **Tensora Asset** — lines & machine health
+  - **Tensora Insight** — factory intelligence & root-cause
+  - **Tensora Certify** — buyer compliance certificates
+  - **Tensora Analytics** — reports
+  - **System Configuration** — settings
+- IDs follow plant conventions: `ASH-U03-L04` (line), `TX-8829` (roll), `DF-000123` (defect), `QAC-2026-0001` (certificate).
 
 ## App shell
-- **Sidebar** (collapses to icon strip): Overview, Live Inspection, Defect Ledger, Rolls & Lots, Lines & Machines, Factory Intelligence, Certificates, Reports, Settings.
-- **Top bar**: "ARANEID / Tensora" mark, facility selector ("Ashulia Mill — Unit 03 | Line #04 (Circular Knit)"), active roll ("Roll #TX-8829 | 100% Combed Cotton Single Jersey (180 GSM)"), Live Camera / Simulated Stream toggle, alert bell, operator menu.
+- **Sidebar** (collapses to icons), grouped: Operations (Command, Vision, Triage), Production (Trace, Asset), Intelligence (Insight, Analytics), Compliance (Certify), System (Configuration).
+- **Command bar**: site selector "Ashulia Mill — Unit 03 | Line #04 (Circular Knit)", active roll "Roll #TX-8829 | 100% Combed Cotton Single Jersey (180 GSM)", Live Camera / Simulated Stream toggle, alerts, shift + operator.
 - Breadcrumbs and page header with actions on every page.
 
-## Pages
-1. **Overview** (`/`) — KPI tiles (rolls inspected, pass rate, avg pts/100 yd², scrap saved), per-line status grid, recent alerts, trend charts. Tabs: Today / Shift / 7 days.
-2. **Live Inspection** (`/inspection`) — tabs:
-   - *Station*: 16:9 scanning feed + bounding box canvas + cyan HUD; Pause, Log Manual Flaw, Snapshot; ASTM D5430 4-point gauge with PASS/REJECT badge at 24.0 and severity breakdown (seed: 142.5 m, 60 in, 18 pts).
-   - *Telemetry*: speed, inference latency, FPS charts.
-   - *Camera Diagnostics*: focus, exposure, lighting uniformity, calibration status.
-3. **Defect Ledger** (`/defects`) — tabs: Pending Triage / Confirmed / Dismissed / All. Filterable table (timestamp, meter mark, class, severity, confidence, thumbnail), Confirm / Reclassify / Dismiss, bulk actions, defect detail drawer.
-4. **Rolls & Lots** (`/rolls`, `/rolls/$rollId`) — roll list with status; roll detail with tabs: Summary / Defect Map (defects plotted along length × width) / Audit History.
-5. **Lines & Machines** (`/lines`, `/lines/$lineId`) — machine cards; detail tabs: Health / Needle & Cylinder Map / Maintenance Log.
-6. **Factory Intelligence** (`/intelligence`) — tabs: Active Alerts (incl. "3 needle line defects within 15 m → inspect Needle #142 on Cylinder Head 2, est. scrap saved $380") / Root-Cause Patterns / Recommendations.
-7. **Certificates** (`/certificates`, `/certificates/$id`) — issued list; certificate view "ARANEID QUALITY AUDIT CERTIFICATE — Powered by Tensora" with lot summary, defect coordinate table, SHA-256 hash + QR, print/save PDF.
-8. **Reports** (`/reports`) — tabs: Quality Trends / Defect Pareto / Buyer Compliance; CSV export.
-9. **Settings** (`/settings`) — tabs: Inspection Thresholds (ASTM limit, severity rules) / Defect Classes / Cameras / Users & Roles (display only).
+## Modules
+1. **Command** (`/`) — KPIs (rolls inspected, pass rate, avg pts/100 yd², scrap avoided), line status grid, alert feed, trends. Tabs: Shift / Today / 7 Days.
+2. **Vision** (`/vision`) — tabs:
+   - *Inspection Station*: 16:9 scanning feed, bounding boxes with class + confidence, cyan HUD (Speed 42 m/min, 4K 60fps Edge-Sync, Inference 18 ms); Pause Inspection, Log Manual Flaw, Snapshot; ASTM D5430 4-point gauge, PASS/REJECT at 24.0, severity breakdown (seed: 142.5 m, 60 in, 18 pts).
+   - *Telemetry*: speed, latency, FPS charts.
+   - *Camera Diagnostics*: focus, exposure, lighting uniformity, calibration.
+3. **Triage** (`/triage`) — tabs: Pending Review / Confirmed / Dismissed / All. Filterable ledger (timestamp, meter mark, class, severity, confidence, thumbnail), Confirm / Reclassify / Dismiss, bulk actions, detail drawer.
+4. **Trace** (`/trace`, `/trace/$rollId`) — roll register; roll detail tabs: Summary / Defect Map / Audit Trail.
+5. **Asset** (`/assets`, `/assets/$lineId`) — machine cards; detail tabs: Health / Needle & Cylinder Map / Maintenance Log.
+6. **Insight** (`/insight`) — tabs: Active Alerts (incl. "Tensora Cluster Alert: 3 needle line defects within 15 m on Line #04 → Inspect Needle #142 on Cylinder Head 2. Estimated scrap saved: $380") / Root-Cause Patterns / Recommendations.
+7. **Certify** (`/certify`, `/certify/$certId`) — issued register; certificate "ARANEID QUALITY AUDIT CERTIFICATE — Powered by Tensora" with lot summary, defect coordinate table, SHA-256 hash + QR, print/PDF.
+8. **Analytics** (`/analytics`) — tabs: Quality Trends / Defect Pareto / Buyer Compliance; CSV export.
+9. **Configuration** (`/configuration`) — tabs: Inspection Thresholds / Defect Taxonomy / Camera Fleet / Users & Roles.
 
 ## Design
-Slate-950/900 surfaces, slate-800 borders, emerald/amber/crimson/cyan as semantic tokens; dense data tables, JetBrains Mono for telemetry, a technical sans for headings. Status colors used consistently across all pages.
+Slate-950/900 surfaces, slate-800 borders; emerald (pass), amber (minor), crimson (major/reject), cyan (telemetry) as semantic tokens. Dense data tables, JetBrains Mono for telemetry/IDs, technical sans for headings.
 
 ## Technical details
-- Separate TanStack route files per page with own head() metadata; tabs via shadcn Tabs bound to `?tab=` search param so tabs are linkable.
-- Shared client store (Zustand-style React context) seeded with realistic mock rolls, lines, defects; live simulation ticks feed the store so all pages update together.
-- shadcn sidebar, tabs, table, dialog, sheet, select, switch; recharts for charts; `qrcode` + Web Crypto for certificates.
-- No backend in this phase (data resets on reload); Lovable Cloud can be added later for persistence and logins.
+- One route file per module with its own head() metadata ("Tensora Vision — Araneid" etc.); tabs bound to `?tab=` search param.
+- Shared client store seeded with realistic mock rolls, lines, defects; simulation ticks update all modules.
+- shadcn sidebar/tabs/table/dialog/sheet/select/switch; recharts; `qrcode` + Web Crypto.
+- No backend this phase (resets on reload); Lovable Cloud can add persistence and logins later.
