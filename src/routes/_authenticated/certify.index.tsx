@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PageHeader, Panel, Tag, fmtDateTime } from "@/components/tensora/ui";
 import { useTensora, rollStats } from "@/lib/tensora/store";
 
-export const Route = createFileRoute("/certify/")({
+export const Route = createFileRoute("/_authenticated/certify/")({
   validateSearch: (s: Record<string, unknown>): { roll?: string } => (typeof s["roll"] === "string" ? { roll: s["roll"] } : {}),
   head: () => ({
     meta: [

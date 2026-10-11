@@ -10,7 +10,7 @@ import { rollsSeed } from "@/lib/tensora/data";
 import { systemUnit, gradeFor } from "@/lib/tensora/scoring";
 import { tabSearch } from "@/lib/tensora/search";
 
-export const Route = createFileRoute("/trace/$rollId")({
+export const Route = createFileRoute("/_authenticated/trace/$rollId")({
   validateSearch: tabSearch,
   loader: ({ params }) => {
     if (!rollsSeed.some((r) => r.id === params.rollId)) throw notFound();

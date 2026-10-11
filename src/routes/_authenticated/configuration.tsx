@@ -7,7 +7,7 @@ import { DEFECT_CLASSES, DEFAULT_POINTS, INSPECTORS } from "@/lib/tensora/data";
 import { ROLES } from "@/lib/tensora/store";
 import { tabSearch } from "@/lib/tensora/search";
 
-export const Route = createFileRoute("/configuration")({
+export const Route = createFileRoute("/_authenticated/configuration")({
   validateSearch: tabSearch,
   head: () => ({
     meta: [

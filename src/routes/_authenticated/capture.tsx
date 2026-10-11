@@ -14,7 +14,7 @@ import { DefectLedger } from "@/components/tensora/defect-ledger";
 import { useTensora } from "@/lib/tensora/store";
 import { tabSearch } from "@/lib/tensora/search";
 
-export const Route = createFileRoute("/capture")({
+export const Route = createFileRoute("/_authenticated/capture")({
   validateSearch: tabSearch,
   head: () => ({
     meta: [

@@ -8,7 +8,7 @@ import { useTensora } from "@/lib/tensora/store";
 import { tabSearch } from "@/lib/tensora/search";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/insight")({
+export const Route = createFileRoute("/_authenticated/insight")({
   validateSearch: tabSearch,
   head: () => ({
     meta: [

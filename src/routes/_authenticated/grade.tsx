@@ -7,7 +7,7 @@ import { useTensora, rollStats } from "@/lib/tensora/store";
 import { gradeFor, systemLabel, systemUnit, type ScoringSystem } from "@/lib/tensora/scoring";
 import { tabSearch } from "@/lib/tensora/search";
 
-export const Route = createFileRoute("/grade")({
+export const Route = createFileRoute("/_authenticated/grade")({
   validateSearch: tabSearch,
   head: () => ({
     meta: [

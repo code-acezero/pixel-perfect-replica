@@ -8,7 +8,7 @@ import { useTensora, rollStats } from "@/lib/tensora/store";
 import { trend30 } from "@/lib/tensora/data";
 import { tabSearch } from "@/lib/tensora/search";
 
-export const Route = createFileRoute("/analytics")({
+export const Route = createFileRoute("/_authenticated/analytics")({
   validateSearch: tabSearch,
   head: () => ({
     meta: [

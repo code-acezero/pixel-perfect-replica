@@ -9,7 +9,7 @@ import { trend30 } from "@/lib/tensora/data";
 import { tabSearch } from "@/lib/tensora/search";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_authenticated/")({
   validateSearch: tabSearch,
   head: () => ({
     meta: [

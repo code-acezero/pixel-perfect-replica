@@ -10,7 +10,7 @@ import { useTensora } from "@/lib/tensora/store";
 import { DEFECT_CLASSES } from "@/lib/tensora/data";
 import { tabSearch } from "@/lib/tensora/search";
 
-export const Route = createFileRoute("/triage")({
+export const Route = createFileRoute("/_authenticated/triage")({
   validateSearch: tabSearch,
   head: () => ({
     meta: [
