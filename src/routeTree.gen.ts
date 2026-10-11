@@ -11,8 +11,13 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CaptureRouteImport } from './routes/capture'
+import { Route as CertifyRouteImport } from './routes/certify'
+import { Route as GradeRouteImport } from './routes/grade'
+import { Route as InsightRouteImport } from './routes/insight'
 import { Route as TraceRouteImport } from './routes/trace'
 import { Route as TriageRouteImport } from './routes/triage'
+import { Route as CertifyIndexRouteImport } from './routes/certify.index'
+import { Route as CertifyCertIdRouteImport } from './routes/certify.$certId'
 import { Route as TraceIndexRouteImport } from './routes/trace.index'
 import { Route as TraceRollIdRouteImport } from './routes/trace.$rollId'
 
@@ -26,6 +31,21 @@ const CaptureRoute = CaptureRouteImport.update({
   path: '/capture',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CertifyRoute = CertifyRouteImport.update({
+  id: '/certify',
+  path: '/certify',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GradeRoute = GradeRouteImport.update({
+  id: '/grade',
+  path: '/grade',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InsightRoute = InsightRouteImport.update({
+  id: '/insight',
+  path: '/insight',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TraceRoute = TraceRouteImport.update({
   id: '/trace',
   path: '/trace',
@@ -35,6 +55,16 @@ const TriageRoute = TriageRouteImport.update({
   id: '/triage',
   path: '/triage',
   getParentRoute: () => rootRouteImport,
+} as any)
+const CertifyIndexRoute = CertifyIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CertifyRoute,
+} as any)
+const CertifyCertIdRoute = CertifyCertIdRouteImport.update({
+  id: '/$certId',
+  path: '/$certId',
+  getParentRoute: () => CertifyRoute,
 } as any)
 const TraceIndexRoute = TraceIndexRouteImport.update({
   id: '/',
@@ -50,46 +80,87 @@ const TraceRollIdRoute = TraceRollIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/capture': typeof CaptureRoute
+  '/certify': typeof CertifyRouteWithChildren
+  '/grade': typeof GradeRoute
+  '/insight': typeof InsightRoute
   '/trace': typeof TraceRouteWithChildren
   '/triage': typeof TriageRoute
+  '/certify/$certId': typeof CertifyCertIdRoute
   '/trace/$rollId': typeof TraceRollIdRoute
+  '/certify/': typeof CertifyIndexRoute
   '/trace/': typeof TraceIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/capture': typeof CaptureRoute
+  '/grade': typeof GradeRoute
+  '/insight': typeof InsightRoute
   '/triage': typeof TriageRoute
+  '/certify/$certId': typeof CertifyCertIdRoute
   '/trace/$rollId': typeof TraceRollIdRoute
+  '/certify': typeof CertifyIndexRoute
   '/trace': typeof TraceIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/capture': typeof CaptureRoute
+  '/certify': typeof CertifyRouteWithChildren
+  '/grade': typeof GradeRoute
+  '/insight': typeof InsightRoute
   '/trace': typeof TraceRouteWithChildren
   '/triage': typeof TriageRoute
+  '/certify/$certId': typeof CertifyCertIdRoute
   '/trace/$rollId': typeof TraceRollIdRoute
+  '/certify/': typeof CertifyIndexRoute
   '/trace/': typeof TraceIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/capture' | '/trace' | '/triage' | '/trace/$rollId' | '/trace/'
+    | '/'
+    | '/capture'
+    | '/certify'
+    | '/grade'
+    | '/insight'
+    | '/trace'
+    | '/triage'
+    | '/certify/$certId'
+    | '/trace/$rollId'
+    | '/certify/'
+    | '/trace/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/capture' | '/triage' | '/trace/$rollId' | '/trace'
+  to:
+    | '/'
+    | '/capture'
+    | '/grade'
+    | '/insight'
+    | '/triage'
+    | '/certify/$certId'
+    | '/trace/$rollId'
+    | '/certify'
+    | '/trace'
   id:
     | '__root__'
     | '/'
     | '/capture'
+    | '/certify'
+    | '/grade'
+    | '/insight'
     | '/trace'
     | '/triage'
+    | '/certify/$certId'
     | '/trace/$rollId'
+    | '/certify/'
     | '/trace/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CaptureRoute: typeof CaptureRoute
+  CertifyRoute: typeof CertifyRouteWithChildren
+  GradeRoute: typeof GradeRoute
+  InsightRoute: typeof InsightRoute
   TraceRoute: typeof TraceRouteWithChildren
   TriageRoute: typeof TriageRoute
 }
@@ -110,6 +181,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CaptureRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/certify': {
+      id: '/certify'
+      path: '/certify'
+      fullPath: '/certify'
+      preLoaderRoute: typeof CertifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/grade': {
+      id: '/grade'
+      path: '/grade'
+      fullPath: '/grade'
+      preLoaderRoute: typeof GradeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/insight': {
+      id: '/insight'
+      path: '/insight'
+      fullPath: '/insight'
+      preLoaderRoute: typeof InsightRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/trace': {
       id: '/trace'
       path: '/trace'
@@ -123,6 +215,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/triage'
       preLoaderRoute: typeof TriageRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/certify/': {
+      id: '/certify/'
+      path: '/'
+      fullPath: '/certify/'
+      preLoaderRoute: typeof CertifyIndexRouteImport
+      parentRoute: typeof CertifyRoute
+    }
+    '/certify/$certId': {
+      id: '/certify/$certId'
+      path: '/$certId'
+      fullPath: '/certify/$certId'
+      preLoaderRoute: typeof CertifyCertIdRouteImport
+      parentRoute: typeof CertifyRoute
     }
     '/trace/': {
       id: '/trace/'
@@ -141,6 +247,19 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface CertifyRouteChildren {
+  CertifyCertIdRoute: typeof CertifyCertIdRoute
+  CertifyIndexRoute: typeof CertifyIndexRoute
+}
+
+const CertifyRouteChildren: CertifyRouteChildren = {
+  CertifyCertIdRoute: CertifyCertIdRoute,
+  CertifyIndexRoute: CertifyIndexRoute,
+}
+
+const CertifyRouteWithChildren =
+  CertifyRoute._addFileChildren(CertifyRouteChildren)
+
 interface TraceRouteChildren {
   TraceRollIdRoute: typeof TraceRollIdRoute
   TraceIndexRoute: typeof TraceIndexRoute
@@ -156,6 +275,9 @@ const TraceRouteWithChildren = TraceRoute._addFileChildren(TraceRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CaptureRoute: CaptureRoute,
+  CertifyRoute: CertifyRouteWithChildren,
+  GradeRoute: GradeRoute,
+  InsightRoute: InsightRoute,
   TraceRoute: TraceRouteWithChildren,
   TriageRoute: TriageRoute,
 }
