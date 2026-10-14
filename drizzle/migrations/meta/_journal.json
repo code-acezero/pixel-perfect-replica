@@ -15,6 +15,13 @@
       "when": 1791983209667,
       "tag": "0001_ai_training_library",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791983496784,
+      "tag": "0002_erp_mes_webhooks",
+      "breakpoints": true
     }
   ]
 }
