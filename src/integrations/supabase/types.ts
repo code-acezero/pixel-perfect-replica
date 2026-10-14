@@ -343,6 +343,42 @@ export type Database = {
           },
         ]
       }
+      training_examples: {
+        Row: {
+          cls: string
+          created_at: string
+          created_by: string | null
+          defect_id: string | null
+          id: string
+          image_path: string
+          note: string
+          points: number
+          source: string
+        }
+        Insert: {
+          cls: string
+          created_at?: string
+          created_by?: string | null
+          defect_id?: string | null
+          id?: string
+          image_path: string
+          note?: string
+          points?: number
+          source?: string
+        }
+        Update: {
+          cls?: string
+          created_at?: string
+          created_by?: string | null
+          defect_id?: string | null
+          id?: string
+          image_path?: string
+          note?: string
+          points?: number
+          source?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
