@@ -254,6 +254,83 @@ export type Database = {
           },
         ]
       }
+      integration_deliveries: {
+        Row: {
+          cert_id: string | null
+          created_at: string
+          endpoint_id: string | null
+          error: string | null
+          event: string
+          id: string
+          ok: boolean
+          payload: Json | null
+          roll_id: string | null
+          status_code: number | null
+        }
+        Insert: {
+          cert_id?: string | null
+          created_at?: string
+          endpoint_id?: string | null
+          error?: string | null
+          event: string
+          id?: string
+          ok?: boolean
+          payload?: Json | null
+          roll_id?: string | null
+          status_code?: number | null
+        }
+        Update: {
+          cert_id?: string | null
+          created_at?: string
+          endpoint_id?: string | null
+          error?: string | null
+          event?: string
+          id?: string
+          ok?: boolean
+          payload?: Json | null
+          roll_id?: string | null
+          status_code?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_deliveries_endpoint_id_fkey"
+            columns: ["endpoint_id"]
+            isOneToOne: false
+            referencedRelation: "integration_endpoints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integration_endpoints: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          kind: string
+          name: string
+          secret: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          kind: string
+          name: string
+          secret: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          kind?: string
+          name?: string
+          secret?: string
+          url?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
