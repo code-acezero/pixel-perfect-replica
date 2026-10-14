@@ -59,12 +59,33 @@ Also rate lighting and focus 0-100 and give one short practical capture tip (e.g
 export const analyzeFrame = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ image: z.string().startsWith("data:image/").max(2_500_000) }).parse(d))
-  .handler(async ({ data }): Promise<FrameResult> => {
+  .handler(async ({ data, context }): Promise<FrameResult> => {
     try {
+      // Few-shot reference library: up to 2 recent verified examples per class.
+      const refs: Record<string, unknown>[] = [];
+      const ex = await context.supabase.from("training_examples").select("cls, points, image_path").order("created_at", { ascending: false }).limit(60);
+      const picked: { cls: string; points: number; image_path: string }[] = [];
+      const per: Record<string, number> = {};
+      for (const e of ex.data ?? []) {
+        if ((per[e.cls] ?? 0) >= 2 || picked.length >= 10) continue;
+        per[e.cls] = (per[e.cls] ?? 0) + 1;
+        picked.push(e);
+      }
+      if (picked.length) {
+        const signed = await context.supabase.storage.from("defect-crops").createSignedUrls(picked.map((p) => p.image_path), 300);
+        refs.push({ type: "input_text", text: "Reference examples of verified defects from this plant's real knit fabric (learn their look, do not report them):" });
+        picked.forEach((p, i) => {
+          const url = signed.data?.[i]?.signedUrl;
+          if (!url) return;
+          refs.push({ type: "input_text", text: `Example: ${p.cls}, ${p.points} pt` });
+          refs.push({ type: "input_image", image_url: url });
+        });
+      }
       const r = await responsesJSON<FrameResult>({
         instructions: DETECT_PROMPT,
         content: [
-          { type: "input_text", text: "Inspect this fabric frame." },
+          ...refs,
+          { type: "input_text", text: "Now inspect this new fabric frame and report only defects in it." },
           { type: "input_image", image_url: data.image },
         ],
         schemaName: "fabric_frame",
