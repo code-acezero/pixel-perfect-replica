@@ -4,6 +4,7 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { PageHeader, Panel, SeverityBadge, Tag } from "@/components/tensora/ui";
 import { DEFECT_CLASSES, DEFAULT_POINTS } from "@/lib/tensora/data";
+import { TrainingLibrary } from "@/components/tensora/training-library";
 import { UsersRoles } from "@/components/tensora/users-roles";
 import { tabSearch } from "@/lib/tensora/search";
 
@@ -39,6 +40,7 @@ function ConfigPage() {
           <TabsList>
             <TabsTrigger value="recipes">Inspection Recipes</TabsTrigger>
             <TabsTrigger value="taxonomy">Defect Taxonomy</TabsTrigger>
+            <TabsTrigger value="training">AI Training</TabsTrigger>
             <TabsTrigger value="sites">Sites & Locations</TabsTrigger>
             <TabsTrigger value="integrations">Integrations</TabsTrigger>
             <TabsTrigger value="users">Users & Roles</TabsTrigger>
@@ -65,6 +67,9 @@ function ConfigPage() {
               </div>
             ))}
           </Panel>
+        </TabsContent>
+        <TabsContent value="training">
+          <TrainingLibrary />
         </TabsContent>
         <TabsContent value="sites" className="grid gap-3 md:grid-cols-2">
           {[["ASH-U03", "Ashulia Mill — Unit 03", "Line #02, #04, #05 · QC Hall · Finishing · Warehouse"], ["GZP-U01", "Gazipur Mill — Unit 01", "Line #03, #07 · QC Hall"], ["DHK-BO", "Buyer Office — Dhaka", "Audit room"]].map(([id, n, l]) => (
