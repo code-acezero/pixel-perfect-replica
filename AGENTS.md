@@ -19,3 +19,4 @@
 - Role checks in UI use `useCan()`; database policies (`has_any_role`) are the real boundary.
 
 - AI calls (frame detection, roll reports) go through `ai.server.ts` (Responses API, streamed, strict JSON schema) wrapped by auth-protected server fns in `ai.functions.ts` — why: keys stay server-side and only signed-in users spend credits.
+- AI 'training' is few-shot: verified photos in `training_examples` (uploads + DB trigger on Triage confirm) are sent as reference images in analyzeFrame — why: gateway models can't be fine-tuned.
