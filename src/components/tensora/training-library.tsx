@@ -7,7 +7,7 @@ import { Panel, SeverityBadge, Tag } from "@/components/tensora/ui";
 import { DEFECT_CLASSES, DEFAULT_POINTS, type DefectClass } from "@/lib/tensora/data";
 import { useCan } from "@/lib/tensora/use-can";
 
-interface Example { id: string; cls: string; points: number; image_path: string; source: string; url?: string }
+interface Example { id: string; cls: string; points: number; image_path: string; source: string; url?: string | undefined }
 
 export function TrainingLibrary() {
   const canManage = useCan("review");
