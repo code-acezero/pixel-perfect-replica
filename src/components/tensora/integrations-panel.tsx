@@ -16,7 +16,7 @@ type Dl = { id: string; event: string; cert_id: string | null; status_code: numb
 const KIND_LABEL: Record<string, string> = { sap: "SAP S/4HANA (QM)", fastreact: "FastReact (MES)", generic: "Generic webhook" };
 
 export function IntegrationsPanel() {
-  const isAdmin = useCan()("manage_roles" as never);
+  const isAdmin = useCan("admin");
   const [eps, setEps] = useState<Ep[]>([]);
   const [dls, setDls] = useState<Dl[]>([]);
   const [form, setForm] = useState({ name: "", kind: "sap", url: "" });

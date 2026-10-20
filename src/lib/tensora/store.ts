@@ -202,7 +202,17 @@ export const useTensora = create<TensoraState>((set, get) => ({
       certificates: [cert, ...s.certificates],
       rolls: s.rolls.map((r) => (r.id === rollId ? { ...r, status: "certified" } : r)),
     });
-    report(cloud.insertCertificate(cert), "certificate");
+    void Promise.resolve(cloud.insertCertificate(cert)).then(async ({ error }) => {
+      if (error) return toast.error("Couldn't save certificate", { description: error.message });
+      try {
+        const { dispatchCertified } = await import("./integrations.functions");
+        const r = await dispatchCertified({ data: { certId: id } });
+        if (r.failed.length) toast.error(`ERP/MES update failed: ${r.failed.join(", ")}`);
+        else if (r.sent) toast.success(`Sent to ${r.sent} ERP/MES system${r.sent > 1 ? "s" : ""}`);
+      } catch (e) {
+        toast.error("ERP/MES update failed", { description: e instanceof Error ? e.message : String(e) });
+      }
+    });
     report(cloud.setRollStatus(rollId, "certified"), "roll status");
     return id;
   },
