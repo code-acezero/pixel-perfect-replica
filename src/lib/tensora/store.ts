@@ -203,7 +203,7 @@ export const useTensora = create<TensoraState>((set, get) => ({
       rolls: s.rolls.map((r) => (r.id === rollId ? { ...r, status: "certified" } : r)),
     });
     void Promise.resolve(cloud.insertCertificate(cert)).then(async ({ error }) => {
-      if (error) return toast.error("Couldn't save certificate", { description: error.message });
+      if (error) { toast.error("Couldn't save certificate", { description: error.message }); return; }
       try {
         const { dispatchCertified } = await import("./integrations.functions");
         const r = await dispatchCertified({ data: { certId: id } });

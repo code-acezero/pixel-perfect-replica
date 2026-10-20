@@ -34,10 +34,10 @@ export function IntegrationsPanel() {
   useEffect(() => { load(); }, []);
 
   const add = async () => {
-    if (!form.name.trim() || !/^https:\/\//.test(form.url)) return toast.error("Enter a name and an https:// address");
+    if (!form.name.trim() || !/^https:\/\//.test(form.url)) { toast.error("Enter a name and an https:// address"); return; }
     const secret = Array.from(crypto.getRandomValues(new Uint8Array(24))).map((b) => b.toString(16).padStart(2, "0")).join("");
     const { data, error } = await supabase.from("integration_endpoints").insert({ ...form, secret }).select().single();
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setShown(data.id);
     setForm({ name: "", kind: "sap", url: "" });
     load();
