@@ -6,7 +6,11 @@ import { CloudSync } from "@/components/tensora/cloud-sync";
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   beforeLoad: async ({ location }) => {
-    const { data } = await supabase.auth.getUser();
+    // Offline: trust the session saved on this device; the server re-checks every write on sync.
+    const user = navigator.onLine
+      ? (await supabase.auth.getUser()).data.user
+      : (await supabase.auth.getSession()).data.session?.user;
+    const data = { user };
     if (!data.user) throw redirect({ to: "/auth", search: { redirect: location.href } });
     return { userId: data.user.id };
   },

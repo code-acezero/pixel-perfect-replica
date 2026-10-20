@@ -5,6 +5,7 @@ import * as cloud from "@/lib/tensora/cloud";
 import { primaryRole, type DbRole } from "@/lib/tensora/permissions";
 import { useTensora } from "@/lib/tensora/store";
 import { TensoraMark } from "./brand";
+import { loadSnapshot, saveSnapshot, startSyncWatcher } from "@/lib/tensora/offline";
 
 /** Loads the organisation's data once after sign-in and keeps it live across devices. */
 export function CloudSync({ userId, children }: { userId: string; children: ReactNode }) {
@@ -15,12 +16,23 @@ export function CloudSync({ userId, children }: { userId: string; children: Reac
   useEffect(() => {
     let cancelled = false;
     setError(null);
+    const stopWatcher = startSyncWatcher();
+    type Cached = { snap: Awaited<ReturnType<typeof cloud.loadAll>>; me: Awaited<ReturnType<typeof cloud.loadMe>> };
+    const apply = ({ snap, me }: Cached) =>
+      useTensora.getState().hydrate(snap, { id: userId, name: me.name, email: me.email, role: primaryRole(me.roles as DbRole[]) });
     Promise.all([cloud.loadAll(), cloud.loadMe(userId)])
       .then(([snap, me]) => {
         if (cancelled) return;
-        useTensora.getState().hydrate(snap, { id: userId, name: me.name, email: me.email, role: primaryRole(me.roles as DbRole[]) });
+        apply({ snap, me });
+        // Keep a copy on this device; thumbnails are signed URLs, so drop them to stay small.
+        void saveSnapshot(`snap:${userId}`, { snap: { ...snap, defects: snap.defects.map(({ thumb: _t, ...d }) => d) }, me });
       })
-      .catch((e: Error) => !cancelled && setError(e.message));
+      .catch(async (e: Error) => {
+        const cached = await loadSnapshot<Cached>(`snap:${userId}`);
+        if (cancelled) return;
+        if (cached) apply(cached);
+        else setError(navigator.onLine ? e.message : "You're offline and this device has no saved copy yet. Open Tensora once with a connection first.");
+      });
 
     const st = useTensora.getState;
     const channel = supabase
@@ -48,6 +60,7 @@ export function CloudSync({ userId, children }: { userId: string; children: Reac
 
     return () => {
       cancelled = true;
+      stopWatcher();
       void supabase.removeChannel(channel);
     };
   }, [userId]);

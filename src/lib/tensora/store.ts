@@ -20,6 +20,7 @@ import {
 } from "./data";
 import { scoreFor } from "./scoring";
 import * as cloud from "./cloud";
+import { write } from "./offline";
 import { type DbRole } from "./permissions";
 
 export type Role = "Field Inspector" | "QC Lead" | "Quality Manager" | "Plant Admin" | "Buyer Auditor";
@@ -69,11 +70,6 @@ interface TensoraState extends Snapshot {
   dismissAlert: (id: string) => void;
 }
 
-function report(res: PromiseLike<{ error: { message: string } | null }>, what: string) {
-  void Promise.resolve(res).then(({ error }) => {
-    if (error) toast.error(`Couldn't save ${what}`, { description: error.message });
-  });
-}
 
 // Inspection progress is flushed to the cloud every few seconds rather than every tick.
 let progressTimer: ReturnType<typeof setTimeout> | null = null;
@@ -156,14 +152,14 @@ export const useTensora = create<TensoraState>((set, get) => ({
         if (!s.ready) return;
         const roll = s.rolls.find((r) => r.id === s.activeRollId);
         const sess = s.sessions.find((x) => x.id === s.activeSessionId);
-        if (roll && sess) void cloud.saveProgress(roll.id, roll.lengthM, sess.id, sess.metersInspected);
+        if (roll && sess) write({ kind: "saveProgress", rollId: roll.id, lengthM: roll.lengthM, sessionId: sess.id, meters: sess.metersInspected }, "inspection progress");
       }, 5000);
     }
   },
   addDefect: (d) => {
     const full: Defect = { ...d, id: cloud.newId("DF") };
     set((s) => ({ defects: [full, ...s.defects] }));
-    if (get().ready) report(cloud.insertDefect(full), "defect");
+    if (get().ready) write({ kind: "insertDefect", d: full }, "defect");
   },
   setDefectStatus: (id, status) => {
     const reviewer = get().me?.name ?? "You";
@@ -171,7 +167,7 @@ export const useTensora = create<TensoraState>((set, get) => ({
       defects: s.defects.map((d) => (d.id === id ? { ...d, status, reviewer } : d)),
       feedbackCount: s.feedbackCount + 1,
     }));
-    report(cloud.updateDefect(id, { status, reviewer }), "review");
+    write({ kind: "updateDefect", id, patch: { status, reviewer } }, "review");
   },
   reclassify: (id, cls, points) => {
     const reviewer = get().me?.name ?? "You";
@@ -181,11 +177,11 @@ export const useTensora = create<TensoraState>((set, get) => ({
       defects: s.defects.map((d) => (d.id === id ? { ...d, originalCls, cls, points, status: "reclassified", reviewer } : d)),
       feedbackCount: s.feedbackCount + 1,
     }));
-    report(cloud.updateDefect(id, { cls, points, status: "reclassified", reviewer, originalCls }), "reclassification");
+    write({ kind: "updateDefect", id, patch: { cls, points, status: "reclassified", reviewer, originalCls } }, "reclassification");
   },
   updateBuyer: (id, patch) => {
     set((s) => ({ buyers: s.buyers.map((b) => (b.id === id ? { ...b, ...patch } : b)) }));
-    report(cloud.updateBuyerRow(id, patch), "buyer standard");
+    write({ kind: "updateBuyer", id, patch }, "buyer standard");
   },
   issueCertificate: (rollId) => {
     const s = get();
@@ -202,23 +198,13 @@ export const useTensora = create<TensoraState>((set, get) => ({
       certificates: [cert, ...s.certificates],
       rolls: s.rolls.map((r) => (r.id === rollId ? { ...r, status: "certified" } : r)),
     });
-    void Promise.resolve(cloud.insertCertificate(cert)).then(async ({ error }) => {
-      if (error) { toast.error("Couldn't save certificate", { description: error.message }); return; }
-      try {
-        const { dispatchCertified } = await import("./integrations.functions");
-        const r = await dispatchCertified({ data: { certId: id } });
-        if (r.failed.length) toast.error(`ERP/MES update failed: ${r.failed.join(", ")}`);
-        else if (r.sent) toast.success(`Sent to ${r.sent} ERP/MES system${r.sent > 1 ? "s" : ""}`);
-      } catch (e) {
-        toast.error("ERP/MES update failed", { description: e instanceof Error ? e.message : String(e) });
-      }
-    });
-    report(cloud.setRollStatus(rollId, "certified"), "roll status");
+    write({ kind: "insertCertificate", c: cert }, "certificate");
+    write({ kind: "setRollStatus", id: rollId, status: "certified" }, "roll status");
     return id;
   },
   dismissAlert: (id) => {
     set((s) => ({ alerts: s.alerts.filter((a) => a.id !== id) }));
-    report(cloud.deleteAlert(id), "alert");
+    write({ kind: "deleteAlert", id }, "alert");
   },
 }));
 
