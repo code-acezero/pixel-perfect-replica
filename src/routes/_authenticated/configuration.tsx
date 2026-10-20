@@ -5,6 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { PageHeader, Panel, SeverityBadge, Tag } from "@/components/tensora/ui";
 import { DEFECT_CLASSES, DEFAULT_POINTS } from "@/lib/tensora/data";
 import { TrainingLibrary } from "@/components/tensora/training-library";
+import { IntegrationsPanel } from "@/components/tensora/integrations-panel";
 import { UsersRoles } from "@/components/tensora/users-roles";
 import { tabSearch } from "@/lib/tensora/search";
 
@@ -76,10 +77,8 @@ function ConfigPage() {
             <Panel key={id} title={id}><div className="font-medium">{n}</div><p className="mt-1 text-sm text-muted-foreground">{l}</p></Panel>
           ))}
         </TabsContent>
-        <TabsContent value="integrations" className="grid gap-3 md:grid-cols-3">
-          {["ERP (SAP / Oracle)", "MES / Production", "Webhooks", "Buyer portals", "Email reports", "Single sign-on"].map((n) => (
-            <Panel key={n} title={n}><Tag>Coming soon</Tag></Panel>
-          ))}
+        <TabsContent value="integrations">
+          <IntegrationsPanel />
         </TabsContent>
         <TabsContent value="users">
           <UsersRoles />
