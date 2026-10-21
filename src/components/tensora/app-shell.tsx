@@ -28,6 +28,18 @@ import { useTensora } from "@/lib/tensora/store";
 import { SITE } from "@/lib/tensora/data";
 import { cn } from "@/lib/utils";
 import { fmtTime } from "./ui";
+import { useSync } from "@/lib/tensora/offline";
+
+function SyncBadge() {
+  const { online, pending, syncing } = useSync();
+  if (online && !pending) return null;
+  return (
+    <span className={cn("flex h-9 items-center gap-1.5 rounded-md border px-2.5 font-mono text-[11px]", online ? "border-telemetry/40 text-telemetry" : "border-minor/50 text-minor")}>
+      <span className={cn("h-1.5 w-1.5 rounded-full", online ? "bg-telemetry" : "bg-minor")} />
+      {online ? (syncing ? "SYNCING" : "QUEUED") : "OFFLINE"}{pending ? ` · ${pending}` : ""}
+    </span>
+  );
+}
 
 function usePath() {
   return useRouterState({ select: (s) => s.location.pathname });
@@ -171,6 +183,7 @@ function TopBar() {
           </div>
         </div>
         <div className="ml-auto flex items-center gap-2">
+          <SyncBadge />
           <button className="hidden h-9 items-center gap-2 rounded-md border border-border bg-surface-2 px-3 text-xs text-muted-foreground hover:bg-accent xl:flex">
             <Search className="h-3.5 w-3.5" /> Search rolls, defects… <kbd className="font-mono text-[10px]">⌘K</kbd>
           </button>
