@@ -1,4 +1,4 @@
-# Pixel Perfect Replica
+# Tensora
 
 Implement exactly the screenshot and nothing else
 
