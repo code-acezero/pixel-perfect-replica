@@ -327,6 +327,33 @@ npm run build:vercel
 ```
 This compiles client assets to `.vercel/output/static` and server functions to `.vercel/output/functions`.
 
+### 5.6. Google OAuth Single Sign-On (SSO) Configuration
+Tensora provides native Google OAuth integration wired directly to Supabase Auth (`supabase.auth.signInWithOAuth`).
+
+To activate Google login for your factory domain:
+1. **Google Cloud Console:**
+   - Go to [Google Cloud Console Credentials](https://console.cloud.google.com/apis/credentials).
+   - Create an **OAuth 2.0 Client ID** with Application Type **Web application**.
+   - Under **Authorized JavaScript origins**, add:
+     - `http://localhost:8080` (Local Development)
+     - `https://mgjqyymqhsxnwkuqskfi.supabase.co`
+     - Your production deployment domain (e.g., `https://tensora-ai.vercel.app`)
+   - Under **Authorized redirect URIs**, add your Supabase Auth callback URL:
+     ```
+     https://mgjqyymqhsxnwkuqskfi.supabase.co/auth/v1/callback
+     ```
+   - Copy the generated **Client ID** and **Client Secret**.
+
+2. **Supabase Project Configuration:**
+   - Go to your Supabase Dashboard: `https://supabase.com/dashboard/project/mgjqyymqhsxnwkuqskfi/auth/providers`
+   - Select **Google** under Auth Providers.
+   - Toggle **Enable Sign in with Google** to **ON**.
+   - Paste your **Client ID** and **Client Secret**.
+   - Save changes.
+
+3. **Automatic User Provisioning:**
+   - When a plant operator or buyer signs in via Google, the database trigger `on_auth_user_created` (`public.handle_new_user()`) automatically creates their profile in `public.profiles` using their Google name and email, and grants initial role permissions (`plant_admin` if first user, or `field_inspector`).
+
 ---
 
 ## 6. Bilingual Defect Taxonomy Reference
