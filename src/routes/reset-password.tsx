@@ -31,9 +31,12 @@ function ResetPage() {
   };
   return (
     <div className="tech-grid grid min-h-screen place-items-center bg-background p-4">
-      <form onSubmit={submit} className="w-full max-w-sm space-y-4 rounded-lg border border-border bg-surface p-6">
-        <Wordmark />
-        <h1 className="text-lg font-semibold">Set a new password</h1>
+      <form onSubmit={submit} className="w-full max-w-sm space-y-4 rounded-lg border border-border bg-surface p-6 shadow-2xl">
+        <Wordmark centered />
+        <div className="text-center">
+          <h1 className="text-base font-semibold">Set a new password</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">Enter your new secure account password</p>
+        </div>
         <div><Label htmlFor="pw">New password</Label><Input id="pw" type="password" minLength={8} required value={pw} onChange={(e) => setPw(e.target.value)} className="mt-1.5 h-11" /></div>
         <Button type="submit" className="h-11 w-full">Update password</Button>
       </form>

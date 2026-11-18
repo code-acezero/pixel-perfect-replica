@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Activity, Award, Camera, DollarSign, Layers, ShieldCheck } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -29,18 +30,39 @@ function CommandPage() {
   const navigate = useNavigate({ from: "/" });
   const state = useTensora();
   const { sessions, alerts, devices, rolls, defects } = state;
-  const data = trend30.slice(-(RANGE[tab] ?? 7));
   const scores = rolls.map((r) => rollStats(state, r.id));
-  const passRate = (scores.filter((s) => s.pass).length / scores.length) * 100;
-  const avg = scores.reduce((a, s) => a + s.score, 0) / scores.length;
+  const passRate = scores.length ? (scores.filter((s) => s.pass).length / scores.length) * 100 : 100;
+  const avg = scores.length ? scores.reduce((a, s) => a + s.score, 0) / scores.length : 0;
   const online = devices.filter((d) => d.status === "online").length;
+
+  // Real-time dynamic trend that blends baseline with live roll quality
+  const data = useMemo(() => {
+    const base = trend30.slice(-(RANGE[tab] ?? 7));
+    return base.map((item, idx, arr) => {
+      if (idx === arr.length - 1) {
+        return {
+          ...item,
+          day: "Today (Live)",
+          score: +avg.toFixed(1),
+          firstQuality: +passRate.toFixed(1),
+          rolls: rolls.length,
+        };
+      }
+      return item;
+    });
+  }, [tab, avg, passRate, rolls.length]);
+
+  // Real computed scrap avoided
+  const scrapAvoided =
+    alerts.reduce((a, x) => a + (x.savings ?? 0), 0) +
+    defects.filter((d) => d.status === "confirmed" && d.points >= 2).length * 95;
 
   return (
     <div className="mx-auto max-w-[1600px]">
       <PageHeader
         module="Tensora Command"
         title="Plant Quality Overview"
-        description="Every camera, every session, every roll — in one view."
+        description="Every camera, every session, every roll — in one live view."
         actions={
           <Button asChild className="gap-2">
             <Link to="/capture"><Camera className="h-4 w-4" /> Start inspection</Link>
@@ -57,12 +79,12 @@ function CommandPage() {
       </Tabs>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-6">
-        <Stat label="Sessions" value={sessions.length + (tab === "30d" ? 412 : tab === "7d" ? 96 : 0)} icon={Activity} tone="telemetry" delta={`${sessions.filter((s) => s.status === "live").length} live now`} />
-        <Stat label="First quality" value={passRate.toFixed(1)} unit="%" icon={ShieldCheck} tone="pass" delta="+1.8% vs prior" />
+        <Stat label="Sessions" value={sessions.length} icon={Activity} tone="telemetry" delta={`${sessions.filter((s) => s.status === "live").length} live now`} />
+        <Stat label="First quality" value={passRate.toFixed(1)} unit="%" icon={ShieldCheck} tone="pass" delta={`${scores.filter((s) => s.pass).length} of ${rolls.length} passed`} />
         <Stat label="Avg score" value={avg.toFixed(1)} unit="pts/100yd²" icon={Award} delta="Across graded rolls" />
-        <Stat label="Rolls graded" value={rolls.length + (tab === "30d" ? 1180 : tab === "7d" ? 274 : 0)} icon={Layers} />
+        <Stat label="Rolls graded" value={rolls.length} icon={Layers} delta={`${rolls.filter((r) => r.status === "certified").length} certified`} />
         <Stat label="Defects flagged" value={defects.length} tone="minor" delta={`${defects.filter((d) => d.status === "pending").length} pending review`} />
-        <Stat label="Scrap avoided" value={`$${(alerts.reduce((a, x) => a + (x.savings ?? 0), 0) + (tab === "30d" ? 18400 : 0)).toLocaleString()}`} icon={DollarSign} tone="pass" />
+        <Stat label="Scrap avoided" value={`$${scrapAvoided.toLocaleString()}`} icon={DollarSign} tone="pass" delta="Alerts + triage" />
       </div>
 
       <div className="mt-4 grid gap-4 xl:grid-cols-3">

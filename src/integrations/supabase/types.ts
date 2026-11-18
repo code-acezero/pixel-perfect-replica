@@ -112,6 +112,8 @@ export type Database = {
           confidence: number
           created_by: string | null
           id: string
+          is_continuous: boolean | null
+          length_in: number | null
           meter: number
           original_cls: string | null
           points: number
@@ -123,12 +125,15 @@ export type Database = {
           thumb_path: string | null
           ts: number
           x: number
+          zone: string | null
         }
         Insert: {
           cls: string
           confidence?: number
           created_by?: string | null
           id: string
+          is_continuous?: boolean | null
+          length_in?: number | null
           meter?: number
           original_cls?: string | null
           points: number
@@ -140,12 +145,15 @@ export type Database = {
           thumb_path?: string | null
           ts: number
           x?: number
+          zone?: string | null
         }
         Update: {
           cls?: string
           confidence?: number
           created_by?: string | null
           id?: string
+          is_continuous?: boolean | null
+          length_in?: number | null
           meter?: number
           original_cls?: string | null
           points?: number
@@ -157,6 +165,7 @@ export type Database = {
           thumb_path?: string | null
           ts?: number
           x?: number
+          zone?: string | null
         }
         Relationships: [
           {
@@ -170,6 +179,7 @@ export type Database = {
       }
       devices: {
         Row: {
+          battery_pct: number | null
           calibrated: boolean
           fps: number
           id: string
@@ -177,11 +187,16 @@ export type Database = {
           last_session: string
           location: string
           name: string
+          ping_ms: number | null
           quality: number
           resolution: string
           status: string
+          stream_role: string | null
+          stream_url: string | null
+          torch_on: boolean | null
         }
         Insert: {
+          battery_pct?: number | null
           calibrated?: boolean
           fps?: number
           id: string
@@ -189,11 +204,16 @@ export type Database = {
           last_session?: string
           location?: string
           name: string
+          ping_ms?: number | null
           quality?: number
           resolution?: string
           status?: string
+          stream_role?: string | null
+          stream_url?: string | null
+          torch_on?: boolean | null
         }
         Update: {
+          battery_pct?: number | null
           calibrated?: boolean
           fps?: number
           id?: string
@@ -201,9 +221,13 @@ export type Database = {
           last_session?: string
           location?: string
           name?: string
+          ping_ms?: number | null
           quality?: number
           resolution?: string
           status?: string
+          stream_role?: string | null
+          stream_url?: string | null
+          torch_on?: boolean | null
         }
         Relationships: []
       }
@@ -357,57 +381,87 @@ export type Database = {
           article: string
           bow_pct: number
           buyer_id: string
+          cuttable_width_in: number | null
+          dye_batch: string | null
+          fabric_type: string | null
           gsm: number
+          gsm_center: number | null
+          gsm_left: number | null
           gsm_measured: number
+          gsm_right: number | null
           id: string
           length_m: number
           line: string
           lot: string
+          machine_no: string | null
           shade_de: number
+          shift: string | null
           shrink_pct: number
+          skew_pct: number | null
           site: string
           status: string
           supplier: string
           width_in: number
           width_measured: number
+          yarn_count: string | null
           yarn_lot: string
         }
         Insert: {
           article: string
           bow_pct?: number
           buyer_id: string
+          cuttable_width_in?: number | null
+          dye_batch?: string | null
+          fabric_type?: string | null
           gsm?: number
+          gsm_center?: number | null
+          gsm_left?: number | null
           gsm_measured?: number
+          gsm_right?: number | null
           id: string
           length_m?: number
           line?: string
           lot?: string
+          machine_no?: string | null
           shade_de?: number
+          shift?: string | null
           shrink_pct?: number
+          skew_pct?: number | null
           site?: string
           status?: string
           supplier?: string
           width_in?: number
           width_measured?: number
+          yarn_count?: string | null
           yarn_lot?: string
         }
         Update: {
           article?: string
           bow_pct?: number
           buyer_id?: string
+          cuttable_width_in?: number | null
+          dye_batch?: string | null
+          fabric_type?: string | null
           gsm?: number
+          gsm_center?: number | null
+          gsm_left?: number | null
           gsm_measured?: number
+          gsm_right?: number | null
           id?: string
           length_m?: number
           line?: string
           lot?: string
+          machine_no?: string | null
           shade_de?: number
+          shift?: string | null
           shrink_pct?: number
+          skew_pct?: number | null
           site?: string
           status?: string
           supplier?: string
           width_in?: number
           width_measured?: number
+          yarn_count?: string | null
           yarn_lot?: string
         }
         Relationships: [

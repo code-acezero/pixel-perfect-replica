@@ -66,7 +66,7 @@ async function deliver(endpoint: { id: string; kind: string; url: string; secret
 /** Sends a certified roll to every enabled ERP/MES endpoint. */
 export const dispatchCertified = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) => z.object({ certId: z.string().min(1).max(40) }).parse(i))
+  .validator((i: unknown) => z.object({ certId: z.string().min(1).max(40) }).parse(i))
   .handler(async ({ data, context }) => {
     const { data: allowed } = await context.supabase.rpc("has_any_role", { _user_id: context.userId, _roles: ["quality_manager", "plant_admin"] });
     if (!allowed) throw new Error("Forbidden");
@@ -87,7 +87,7 @@ export const dispatchCertified = createServerFn({ method: "POST" })
 /** Admin-only test ping to one endpoint. */
 export const testEndpoint = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) => z.object({ id: z.string().uuid() }).parse(i))
+  .validator((i: unknown) => z.object({ id: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }) => {
     // RLS limits this read to Plant Admins.
     const { data: ep } = await context.supabase.from("integration_endpoints").select("*").eq("id", data.id).maybeSingle();

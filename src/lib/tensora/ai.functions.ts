@@ -58,7 +58,7 @@ Also rate lighting and focus 0-100 and give one short practical capture tip (e.g
 
 export const analyzeFrame = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ image: z.string().startsWith("data:image/").max(2_500_000) }).parse(d))
+  .validator((d: unknown) => z.object({ image: z.string().startsWith("data:image/").max(2_500_000) }).parse(d))
   .handler(async ({ data, context }): Promise<FrameResult> => {
     try {
       // Few-shot reference library: up to 2 recent verified examples per class.
@@ -129,7 +129,7 @@ const reportSchema = {
 
 export const writeRollReport = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ rollId: z.string().min(1).max(40), score: z.number(), limit: z.number(), system: z.string() }).parse(d))
+  .validator((d: unknown) => z.object({ rollId: z.string().min(1).max(40), score: z.number(), limit: z.number(), system: z.string() }).parse(d))
   .handler(async ({ data, context }): Promise<RollReport> => {
     const sb = context.supabase;
     const [roll, defects] = await Promise.all([

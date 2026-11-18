@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2, BrainCircuit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { writeRollReport, type RollReport } from "@/lib/tensora/ai.functions";
 import { rollStats, useTensora } from "@/lib/tensora/store";
@@ -31,7 +31,7 @@ export function AiReport({ rollId }: { rollId: string }) {
       title="Tensora AI Inspection Narrative"
       action={
         <Button size="sm" variant="outline" className="gap-2 print:hidden" onClick={run} disabled={busy}>
-          {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5 text-telemetry" />}
+          {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <BrainCircuit className="h-3.5 w-3.5 text-telemetry" />}
           {r ? "Regenerate" : "Write report"}
         </Button>
       }

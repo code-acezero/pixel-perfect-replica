@@ -6,6 +6,7 @@ import { primaryRole, type DbRole } from "@/lib/tensora/permissions";
 import { useTensora } from "@/lib/tensora/store";
 import { TensoraMark } from "./brand";
 import { loadSnapshot, saveSnapshot, startSyncWatcher } from "@/lib/tensora/offline";
+import { alertsSeed, buyersSeed, certificatesSeed, defectsSeed, devicesSeed, rollsSeed, sessionsSeed } from "@/lib/tensora/data";
 
 /** Loads the organisation's data once after sign-in and keeps it live across devices. */
 export function CloudSync({ userId, children }: { userId: string; children: ReactNode }) {
@@ -17,6 +18,31 @@ export function CloudSync({ userId, children }: { userId: string; children: Reac
     let cancelled = false;
     setError(null);
     const stopWatcher = startSyncWatcher();
+
+    if (userId.startsWith("demo-")) {
+      useTensora.getState().hydrate(
+        {
+          buyers: buyersSeed,
+          rolls: rollsSeed,
+          devices: devicesSeed,
+          sessions: sessionsSeed,
+          defects: defectsSeed,
+          alerts: alertsSeed,
+          certificates: certificatesSeed,
+        },
+        {
+          id: userId,
+          name: "Tariqul Islam (Plant Admin / Lead QC)",
+          email: "tariqul.qc@araneid.internal",
+          role: "plant_admin",
+        }
+      );
+      return () => {
+        cancelled = true;
+        stopWatcher();
+      };
+    }
+
     type Cached = { snap: Awaited<ReturnType<typeof cloud.loadAll>>; me: Awaited<ReturnType<typeof cloud.loadMe>> };
     const apply = ({ snap, me }: Cached) =>
       useTensora.getState().hydrate(snap, { id: userId, name: me.name, email: me.email, role: primaryRole(me.roles as DbRole[]) });
@@ -69,7 +95,7 @@ export function CloudSync({ userId, children }: { userId: string; children: Reac
     return (
       <div className="tech-grid grid min-h-screen place-items-center bg-background p-6 text-center">
         <div>
-          <TensoraMark className="mx-auto h-12 w-12" />
+          <TensoraMark className="mx-auto h-12 w-auto" />
           {error ? (
             <>
               <p className="mt-4 text-sm font-medium">Couldn't load your plant data</p>

@@ -1,10 +1,13 @@
 import { create } from "zustand";
 import { toast } from "sonner";
 import * as cloud from "./cloud";
-import type { Buyer, Certificate, Defect, Roll } from "./data";
+import type { Buyer, Certificate, Defect, Device, Roll, Session } from "./data";
 
 /** Writes that can be replayed later. Each op is plain data so it survives in IndexedDB. */
 export type Op =
+  | { kind: "insertRoll"; roll: Roll }
+  | { kind: "insertSession"; s: Session }
+  | { kind: "upsertDevice"; device: Device }
   | { kind: "insertDefect"; d: Defect }
   | { kind: "updateDefect"; id: string; patch: Partial<Defect> }
   | { kind: "updateBuyer"; id: string; patch: Partial<Buyer> }
@@ -47,6 +50,9 @@ const isNetworkError = (msg: string) => /fetch|network|load failed|timed? ?out/i
 
 async function run(op: Op): Promise<{ error: { message: string; code?: string } | null }> {
   switch (op.kind) {
+    case "insertRoll": return cloud.insertRoll(op.roll);
+    case "insertSession": return cloud.insertSession(op.s);
+    case "upsertDevice": return cloud.upsertDevice(op.device);
     case "insertDefect": return cloud.insertDefect(op.d);
     case "updateDefect": return cloud.updateDefect(op.id, op.patch);
     case "updateBuyer": return cloud.updateBuyerRow(op.id, op.patch);

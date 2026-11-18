@@ -1,10 +1,10 @@
-import type { ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { LogOut } from "lucide-react";
+import { LogOut, Bell, Camera, ClipboardCheck, Activity, Menu, Radio, MonitorPlay, Search, Layers, FileBadge, Wrench, QrCode, SlidersHorizontal, ChevronDown, Languages } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { ROLE_LABEL } from "@/lib/tensora/permissions";
-import { Bell, Camera, ClipboardCheck, Activity, Menu, Radio, MonitorPlay, Search } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -22,6 +22,15 @@ import {
 } from "@/components/ui/sidebar";
 import { Switch } from "@/components/ui/switch";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from "@/components/ui/command";
 import { NAV_GROUPS } from "./nav";
 import { Wordmark } from "./brand";
 import { useTensora } from "@/lib/tensora/store";
@@ -34,9 +43,14 @@ function SyncBadge() {
   const { online, pending, syncing } = useSync();
   if (online && !pending) return null;
   return (
-    <span className={cn("flex h-9 items-center gap-1.5 rounded-md border px-2.5 font-mono text-[11px]", online ? "border-telemetry/40 text-telemetry" : "border-minor/50 text-minor")}>
-      <span className={cn("h-1.5 w-1.5 rounded-full", online ? "bg-telemetry" : "bg-minor")} />
-      {online ? (syncing ? "SYNCING" : "QUEUED") : "OFFLINE"}{pending ? ` · ${pending}` : ""}
+    <span
+      className={cn(
+        "hidden sm:inline-flex h-8 items-center rounded-full border px-3 font-mono text-xs font-medium",
+        online ? "border-telemetry/40 text-telemetry bg-telemetry/10" : "border-minor/50 text-minor bg-minor/10"
+      )}
+    >
+      <span>{online ? (syncing ? "Syncing" : "Queued") : "Offline"}</span>
+      {pending ? <span className="ml-1.5 font-bold">{pending}</span> : null}
     </span>
   );
 }
@@ -55,18 +69,25 @@ function AppSidebar() {
   const collapsed = state === "collapsed";
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b border-sidebar-border px-3 py-3">
+      <SidebarHeader className="border-b border-sidebar-border px-3.5 py-3">
         <Wordmark compact={collapsed} />
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="gap-1 py-1 px-1.5 overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {NAV_GROUPS.map((g) => (
-          <SidebarGroup key={g.label}>
-            <SidebarGroupLabel className="label-caps">{g.label}</SidebarGroupLabel>
+          <SidebarGroup key={g.label} className="p-0 pb-1">
+            <SidebarGroupLabel className="h-6 px-2 text-[10px] font-mono font-semibold tracking-wider text-muted-foreground/50">
+              {g.label}
+            </SidebarGroupLabel>
             <SidebarGroupContent>
-              <SidebarMenu>
+              <SidebarMenu className="gap-0.5">
                 {g.items.map((item) => (
                   <SidebarMenuItem key={item.to}>
-                    <SidebarMenuButton asChild isActive={isActive(path, item.to)} tooltip={item.module}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive(path, item.to)}
+                      tooltip={item.module}
+                      className="h-8 text-xs font-medium rounded-md transition-colors"
+                    >
                       <Link to={item.to} onClick={() => setOpenMobile(false)}>
                         <item.icon className="h-4 w-4" />
                         <span>{item.title}</span>
@@ -79,11 +100,11 @@ function AppSidebar() {
           </SidebarGroup>
         ))}
       </SidebarContent>
-      <SidebarFooter className="border-t border-sidebar-border">
+      <SidebarFooter className="border-t border-sidebar-border px-3 py-2.5">
         {!collapsed && (
-          <div className="px-2 py-1 font-mono text-[10px] leading-relaxed text-muted-foreground">
-            Tensora v3.4.0 · Edge model TX-Vision-9
-            <br />© Araneid Industrial Systems
+          <div className="font-mono text-[10px] leading-tight text-muted-foreground/75 select-none">
+            <div className="truncate font-semibold text-foreground/80">Tensora v3.4.0 · TX-Vision-9</div>
+            <div className="truncate text-[9px] text-muted-foreground/50 mt-0.5">© Araneid Industrial Systems</div>
           </div>
         )}
       </SidebarFooter>
@@ -97,10 +118,13 @@ function AlertsBell() {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button className="relative grid h-9 w-9 shrink-0 place-items-center rounded-md border border-border bg-surface-2 hover:bg-accent" aria-label="Alerts">
-          <Bell className="h-4 w-4" />
+        <button
+          className="relative grid h-8 w-8 shrink-0 place-items-center rounded-full border border-border/80 bg-surface-2/60 hover:bg-surface-2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+          aria-label="Alerts"
+        >
+          <Bell className="h-3.5 w-3.5" />
           {majors > 0 && (
-            <span className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-major px-1 font-mono text-[9px] font-bold text-destructive-foreground">
+            <span className="absolute -right-0.5 -top-0.5 grid h-3.5 min-w-3.5 place-items-center rounded-full bg-major px-0.5 font-mono text-[8px] font-bold text-destructive-foreground">
               {majors}
             </span>
           )}
@@ -131,27 +155,34 @@ function UserMenu() {
   const navigate = useNavigate();
   if (!me) return null;
   const signOut = async () => {
+    localStorage.removeItem("tensora_demo_user");
     await queryClient.cancelQueries();
     queryClient.clear();
     await supabase.auth.signOut();
     navigate({ to: "/auth", search: { redirect: undefined }, replace: true });
   };
+  const firstName = me.name.split(" ")[0] || me.name;
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button className="flex h-9 items-center gap-2 rounded-md border border-border bg-surface-2 px-2 text-xs hover:bg-accent" aria-label="Account">
-          <span className="grid h-6 w-6 place-items-center rounded-full bg-primary/20 font-mono text-[10px] font-bold text-primary">{me.name.slice(0, 2).toUpperCase()}</span>
-          <span className="hidden max-w-[120px] truncate text-left sm:block">
-            <span className="block truncate font-medium">{me.name}</span>
-            <span className="block truncate text-[10px] text-muted-foreground">{ROLE_LABEL[me.role]}</span>
+        <button
+          className="flex h-8 items-center gap-1.5 rounded-full border border-border/80 bg-surface-2/60 pl-1 pr-2 text-xs hover:bg-surface-2 transition-colors cursor-pointer"
+          aria-label="Account"
+        >
+          <span className="grid h-6 w-6 place-items-center rounded-full bg-primary/20 font-mono text-[10px] font-bold text-primary">
+            {me.name.slice(0, 2).toUpperCase()}
           </span>
+          <span className="hidden xl:inline max-w-[84px] truncate text-xs font-medium text-foreground">
+            {firstName}
+          </span>
+          <ChevronDown className="h-3 w-3 text-muted-foreground" />
         </button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-64 p-3">
         <div className="text-sm font-medium">{me.name}</div>
         <div className="truncate text-xs text-muted-foreground">{me.email}</div>
         <div className="mt-2 inline-block rounded border border-telemetry/40 px-1.5 py-0.5 font-mono text-[10px] text-telemetry">{ROLE_LABEL[me.role]}</div>
-        <button onClick={signOut} className="mt-3 flex w-full items-center gap-2 rounded-md border border-border px-3 py-2 text-sm hover:bg-accent">
+        <button onClick={signOut} className="mt-3 flex w-full items-center gap-2 rounded-md border border-border px-3 py-2 text-sm hover:bg-accent cursor-pointer">
           <LogOut className="h-4 w-4" /> Sign out
         </button>
       </PopoverContent>
@@ -159,44 +190,166 @@ function UserMenu() {
   );
 }
 
-function TopBar() {
-  const { streamMode, setStreamMode, activeRollId, rolls } = useTensora();
-  const roll = rolls.find((r) => r.id === activeRollId)!;
+function TopBar({ onOpenCommand }: { onOpenCommand: () => void }) {
+  const { streamMode, setStreamMode, activeRollId, rolls, language, setLanguage } = useTensora();
+  const roll = rolls.find((r) => r.id === activeRollId) ?? rolls[0] ?? { id: activeRollId, article: "100% Combed Cotton Single Jersey", gsm: 180 };
   return (
-    <header className="sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur">
-      <div className="flex h-14 items-center gap-3 px-3 sm:px-4">
-        <SidebarTrigger className="hidden md:inline-flex" />
-        <div className="md:hidden">
-          <Wordmark />
-        </div>
-        <div className="hidden min-w-0 flex-1 items-center gap-4 lg:flex">
-          <div className="min-w-0">
-            <div className="label-caps">Site</div>
-            <div className="truncate text-xs font-medium">{SITE.name} | {SITE.line}</div>
+    <header className="sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur print:hidden">
+      <div className="flex h-13 items-center justify-between gap-3 px-3 sm:px-4">
+        {/* Left: Sidebar trigger & compact breadcrumb context */}
+        <div className="flex items-center gap-3 min-w-0">
+          <SidebarTrigger className="hidden md:inline-flex h-8 w-8" />
+          <div className="md:hidden">
+            <Wordmark />
           </div>
-          <div className="h-8 w-px bg-border" />
-          <div className="min-w-0">
-            <div className="label-caps">Active roll</div>
-            <div className="truncate text-xs font-medium">
-              <span className="font-mono text-primary">Roll #{roll.id}</span> | {roll.article} ({roll.gsm} GSM)
-            </div>
+          <div className="hidden items-center gap-2 text-xs md:flex min-w-0">
+            <span className="font-medium text-muted-foreground truncate max-w-[160px]">{SITE.name}</span>
+            <span className="text-muted-foreground/30">/</span>
+            <span className="font-mono text-muted-foreground text-[11px]">{SITE.line.replace(/\s*\(.*\)/, "")}</span>
+            <span className="text-muted-foreground/30">/</span>
+            <Link
+              to="/trace/$rollId"
+              params={{ rollId: roll.id }}
+              className="inline-flex h-8 items-center rounded-full border border-primary/30 bg-primary/10 px-3 font-mono text-xs font-semibold text-primary hover:bg-primary/20 transition-colors shrink-0"
+              title={`Active roll: ${roll.id} · ${roll.article}`}
+            >
+              <span>Roll #{roll.id}</span>
+            </Link>
           </div>
         </div>
-        <div className="ml-auto flex items-center gap-2">
+
+        {/* Right: Sync, Language, Search, Stream toggle, Alerts, Profile */}
+        <div className="flex items-center gap-2 shrink-0">
           <SyncBadge />
-          <button className="hidden h-9 items-center gap-2 rounded-md border border-border bg-surface-2 px-3 text-xs text-muted-foreground hover:bg-accent xl:flex">
-            <Search className="h-3.5 w-3.5" /> Search rolls, defects… <kbd className="font-mono text-[10px]">⌘K</kbd>
+          <button
+            type="button"
+            onClick={() => {
+              const next = language === "en" ? "bn" : "en";
+              setLanguage(next);
+              toast(next === "bn" ? "বাংলা মোড সক্রিয় (Bengali Mill Operator Mode)" : "Switched to English");
+            }}
+            className="flex h-8 items-center gap-1.5 rounded-full border border-border/80 bg-surface-2/60 px-2.5 text-xs font-mono font-medium text-muted-foreground hover:text-foreground hover:bg-surface-2 transition-colors cursor-pointer"
+            title="Toggle Language / ভাষা পরিবর্তন (English / বাংলা)"
+          >
+            <Languages className="h-3.5 w-3.5 text-telemetry" />
+            <span>{language === "en" ? "EN" : "বাং"}</span>
           </button>
-          <label className="flex h-9 items-center gap-2 rounded-md border border-border bg-surface-2 px-2.5 text-xs">
-            {streamMode === "live" ? <Radio className="h-3.5 w-3.5 text-telemetry" /> : <MonitorPlay className="h-3.5 w-3.5 text-muted-foreground" />}
-            <span className="hidden sm:inline">{streamMode === "live" ? "Live Camera Feed" : "Simulated Factory Stream"}</span>
-            <Switch checked={streamMode === "live"} onCheckedChange={(v) => setStreamMode(v ? "live" : "sim")} aria-label="Toggle live camera" />
-          </label>
+          <button
+            onClick={onOpenCommand}
+            className="flex h-8 items-center gap-2 rounded-full border border-border/80 bg-surface-2/60 px-3 text-xs text-muted-foreground hover:bg-surface-2 hover:text-foreground transition-colors cursor-pointer"
+            title="Global Command Palette (Ctrl+K or ⌘K)"
+          >
+            <Search className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline text-xs">Search...</span>
+            <kbd className="hidden sm:inline-flex h-4 items-center rounded border border-border/80 px-1 font-mono text-[9px] text-muted-foreground/80">⌘K</kbd>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              const next = streamMode === "live" ? "sim" : "live";
+              setStreamMode(next);
+              toast(`Stream switched to ${next === "live" ? "Live Camera" : "Simulated Feed"}`);
+            }}
+            className={cn(
+              "flex h-8 items-center rounded-full border px-3 text-xs font-mono font-medium transition-all cursor-pointer",
+              streamMode === "live"
+                ? "border-telemetry/50 bg-telemetry/10 text-telemetry shadow-[0_0_8px_rgba(56,189,248,0.2)]"
+                : "border-border/80 bg-surface-2/60 text-muted-foreground hover:text-foreground hover:bg-surface-2"
+            )}
+            title={`Current: ${streamMode === "live" ? "Live Camera Feed" : "Simulated Factory Stream"}. Click to toggle.`}
+          >
+            <span>{streamMode === "live" ? "Live Feed" : "Sim Stream"}</span>
+          </button>
           <AlertsBell />
           <UserMenu />
         </div>
       </div>
     </header>
+  );
+}
+
+function GlobalCommandPalette({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+  const navigate = useNavigate();
+  const { rolls, setActiveRoll, streamMode, setStreamMode } = useTensora();
+
+  const handleSelect = (action: () => void) => {
+    action();
+    onOpenChange(false);
+  };
+
+  return (
+    <CommandDialog open={open} onOpenChange={onOpenChange}>
+      <CommandInput placeholder="Type a command, search rolls, or jump to module..." />
+      <CommandList>
+        <CommandEmpty>No matching command or inventory found.</CommandEmpty>
+
+        <CommandGroup heading="Quick Actions">
+          <CommandItem onSelect={() => handleSelect(() => navigate({ to: "/capture", search: { tab: "live" } }))}>
+            <Camera className="mr-2 h-4 w-4 text-telemetry" />
+            <span>Start Live Optical Inspection Station</span>
+          </CommandItem>
+          <CommandItem onSelect={() => handleSelect(() => navigate({ to: "/capture", search: { tab: "setup" } }))}>
+            <QrCode className="mr-2 h-4 w-4 text-primary" />
+            <span>Scan / Create Roll Ticket</span>
+          </CommandItem>
+          <CommandItem onSelect={() => handleSelect(() => navigate({ to: "/certify" }))}>
+            <FileBadge className="mr-2 h-4 w-4 text-pass" />
+            <span>Issue Cryptographic Quality Certificate</span>
+          </CommandItem>
+          <CommandItem onSelect={() => handleSelect(() => navigate({ to: "/devices" }))}>
+            <Wrench className="mr-2 h-4 w-4 text-minor" />
+            <span>Pair Camera Device (Phone, Tablet, USB, IP)</span>
+          </CommandItem>
+          <CommandItem onSelect={() => handleSelect(() => {
+            const nextMode = streamMode === "live" ? "sim" : "live";
+            setStreamMode(nextMode);
+            toast(`Stream switched to ${nextMode === "live" ? "Live Camera" : "Simulated Feed"}`);
+          })}>
+            <Radio className="mr-2 h-4 w-4 text-telemetry" />
+            <span>Toggle Stream Mode (Currently: {streamMode === "live" ? "Live" : "Simulated"})</span>
+          </CommandItem>
+        </CommandGroup>
+
+        <CommandSeparator />
+
+        <CommandGroup heading="Roll Inventory Register">
+          {rolls.slice(0, 8).map((r) => (
+            <CommandItem
+              key={r.id}
+              value={`${r.id} ${r.article} ${r.lot} ${r.supplier}`}
+              onSelect={() => handleSelect(() => {
+                setActiveRoll(r.id);
+                navigate({ to: "/trace/$rollId", params: { rollId: r.id } });
+              })}
+            >
+              <Layers className="mr-2 h-4 w-4 text-primary" />
+              <div className="flex flex-1 items-center justify-between">
+                <span>
+                  <b className="font-mono">{r.id}</b> · {r.article}
+                </span>
+                <span className="font-mono text-xs text-muted-foreground">{r.lengthM.toFixed(0)}m · {r.status}</span>
+              </div>
+            </CommandItem>
+          ))}
+        </CommandGroup>
+
+        <CommandSeparator />
+
+        <CommandGroup heading="Navigation">
+          {NAV_GROUPS.flatMap((g) => g.items.map((item) => ({ ...item, group: g.label }))).map((item) => (
+            <CommandItem
+              key={item.to}
+              value={`${item.title} ${item.group}`}
+              onSelect={() => handleSelect(() => navigate({ to: item.to }))}
+            >
+              <item.icon className="mr-2 h-4 w-4 text-muted-foreground" />
+              <span>{item.title}</span>
+              <span className="ml-auto text-[10px] font-mono text-muted-foreground/60">{item.group}</span>
+            </CommandItem>
+          ))}
+        </CommandGroup>
+      </CommandList>
+    </CommandDialog>
   );
 }
 
@@ -210,7 +363,7 @@ function BottomNav() {
     { to: "/insight", label: "Alerts", icon: Bell },
   ];
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden print:hidden">
       {items.map((i) => (
         <Link
           key={i.to}
@@ -233,16 +386,32 @@ function BottomNav() {
 }
 
 export function AppShell({ children }: { children: ReactNode }) {
+  const [commandOpen, setCommandOpen] = useState(false);
+
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setCommandOpen((open) => !open);
+      }
+    };
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
+  }, []);
+
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
-        <AppSidebar />
+        <div className="print:hidden">
+          <AppSidebar />
+        </div>
         <div className="flex min-w-0 flex-1 flex-col">
-          <TopBar />
-          <main className="flex-1 px-3 pb-24 pt-4 sm:px-6 sm:pt-6 md:pb-10">{children}</main>
+          <TopBar onOpenCommand={() => setCommandOpen(true)} />
+          <main className="flex-1 px-3 pb-24 pt-4 sm:px-6 sm:pt-6 md:pb-10 print:p-0 print:m-0">{children}</main>
         </div>
       </div>
       <BottomNav />
+      <GlobalCommandPalette open={commandOpen} onOpenChange={setCommandOpen} />
     </SidebarProvider>
   );
 }
