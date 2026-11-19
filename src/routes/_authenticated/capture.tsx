@@ -21,6 +21,8 @@ import {
   BD_SHIFTS,
   BD_YARN_COUNTS,
   type Roll,
+  rollsSeed,
+  buyersSeed,
 } from "@/lib/tensora/data";
 
 export const Route = createFileRoute("/_authenticated/capture")({
@@ -47,13 +49,15 @@ function CapturePage() {
     setStreamMode,
     sessionLocation,
     setActiveRoll,
+    rolls,
+    buyers,
+    defects: allDefects,
   } = useTensora();
   const canInspect = useCan("inspect");
-  const allDefects = useTensora((s) => s.defects);
   const defects = allDefects.filter((d) => d.rollId === activeRollId);
   const cluster = useTensora((s) => s.alerts.find((a) => a.id === "ALR-0091"));
-  const currentRoll = useTensora((s) => s.rolls.find((r) => r.id === s.activeRollId) ?? s.rolls[0]);
-  const currentBuyer = useTensora((s) => s.buyers.find((b) => b.id === currentRoll?.buyerId));
+  const currentRoll = rolls.find((r) => r.id === activeRollId) ?? rolls[0] ?? rollsSeed[0];
+  const currentBuyer = (currentRoll && buyers.find((b) => b.id === currentRoll.buyerId)) ?? buyers[0] ?? buyersSeed[0];
 
   // Handle ?pair= query parameter from QR code scan
   useEffect(() => {

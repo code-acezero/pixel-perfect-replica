@@ -138,6 +138,27 @@ function drawXaiHeatmap(ctx: CanvasRenderingContext2D, d: Det, W: number) {
   ctx.restore();
 }
 
+const FALLBACK_ROLL: Roll = {
+  id: "TX-1001",
+  article: "100% Combed Cotton Single Jersey",
+  gsm: 180,
+  widthIn: 60,
+  cuttableWidthIn: 59,
+  lengthM: 100,
+  buyerId: "BYR-HM-01",
+  lot: "LOT-2026-0001",
+  yarnLot: "YL-30S-0001",
+  supplier: "Square Yarns Ltd",
+  site: "ASH-U03",
+  line: "ASH-U03-L04",
+  status: "inspecting",
+  gsmMeasured: 180,
+  widthMeasured: 60,
+  bowPct: 0.0,
+  shadeDE: 0.0,
+  shrinkPct: 0.0,
+};
+
 export function InspectionStation() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -173,29 +194,12 @@ export function InspectionStation() {
     language,
     floorAlarmEnabled,
     setFloorAlarmEnabled,
+    rolls,
+    defects,
   } = useTensora();
-  const fallbackRoll: Roll = {
-    id: "TX-1001",
-    article: "100% Combed Cotton Single Jersey",
-    gsm: 180,
-    widthIn: 60,
-    cuttableWidthIn: 59,
-    lengthM: 100,
-    buyerId: "BYR-HM-01",
-    lot: "LOT-2026-0001",
-    yarnLot: "YL-30S-0001",
-    supplier: "Square Yarns Ltd",
-    site: "ASH-U03",
-    line: "ASH-U03-L04",
-    status: "inspecting",
-    gsmMeasured: 180,
-    widthMeasured: 60,
-    bowPct: 0.0,
-    shadeDE: 0.0,
-    shrinkPct: 0.0,
-  };
-  const roll = useTensora((s) => s.rolls.find((r) => r.id === s.activeRollId) ?? s.rolls[0] ?? fallbackRoll);
-  const rollDefects = useTensora((s) => s.defects.filter((d) => d.rollId === s.activeRollId));
+
+  const roll = rolls.find((r) => r.id === activeRollId) ?? rolls[0] ?? FALLBACK_ROLL;
+  const rollDefects = defects.filter((d) => d.rollId === activeRollId);
   const continuousAlarm = checkContinuousFault(rollDefects);
 
   // Trigger high-decibel acoustic siren if continuous streak hold detected
@@ -472,12 +476,14 @@ export function InspectionStation() {
 
   // Render loop
   useEffect(() => {
-    const canvas = canvasRef.current!;
-    const ctx = canvas.getContext("2d")!;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
     const tile = makeKnitTile();
-    const pattern = ctx.createPattern(tile, "repeat")!;
-    const major = cssVar("--major");
-    const minor = cssVar("--minor");
+    const pattern = ctx.createPattern(tile, "repeat");
+    const major = cssVar("--major") || "#ef4444";
+    const minor = cssVar("--minor") || "#f59e0b";
     let raf = 0;
     let nextSpawn = performance.now() + 2500;
 
@@ -487,7 +493,7 @@ export function InspectionStation() {
       t.height = 96;
       const sx = Math.max(d.x * canvas.width - d.w, 0);
       const sy = Math.max(d.y - d.h / 2, 0);
-      t.getContext("2d")!.drawImage(canvas, sx, sy, d.w * 2, d.h * 2, 0, 0, 128, 96);
+      t.getContext("2d")?.drawImage(canvas, sx, sy, d.w * 2, d.h * 2, 0, 0, 128, 96);
       return t.toDataURL("image/jpeg", 0.7);
     };
 
@@ -502,14 +508,19 @@ export function InspectionStation() {
       if (hasUploaded && uploadedImageRef.current) {
         // Draw the uploaded high-resolution fabric sample
         ctx.drawImage(uploadedImageRef.current, 0, 0, W, H);
-      } else if (live) {
-        ctx.drawImage(videoRef.current!, 0, 0, W, H);
+      } else if (live && videoRef.current) {
+        ctx.drawImage(videoRef.current, 0, 0, W, H);
       } else {
         offsetRef.current = (offsetRef.current + step) % 10;
         ctx.save();
         ctx.translate(0, offsetRef.current);
-        ctx.fillStyle = pattern;
-        ctx.fillRect(0, -10, W, H + 20);
+        if (pattern) {
+          ctx.fillStyle = pattern;
+          ctx.fillRect(0, -10, W, H + 20);
+        } else {
+          ctx.fillStyle = "#1e293b";
+          ctx.fillRect(0, 0, W, H);
+        }
         ctx.restore();
         // lighting vignette
         const g = ctx.createRadialGradient(W / 2, H / 2, H / 4, W / 2, H / 2, W / 1.2);
@@ -604,7 +615,8 @@ export function InspectionStation() {
   }, [streamMode, speed, addDefect, activeRollId, activeSessionId, showXaiHeatmap]);
 
   const snapshot = () => {
-    const url = canvasRef.current!.toDataURL("image/png");
+    if (!canvasRef.current) return;
+    const url = canvasRef.current.toDataURL("image/png");
     const a = document.createElement("a");
     a.href = url;
     a.download = `tensora-${roll.id}-${roll.lengthM.toFixed(1)}m.png`;
@@ -613,11 +625,12 @@ export function InspectionStation() {
   };
 
   const logManual = () => {
-    const c = canvasRef.current!;
+    const c = canvasRef.current;
+    if (!c) return;
     const t = document.createElement("canvas");
     t.width = 128;
     t.height = 96;
-    t.getContext("2d")!.drawImage(c, c.width / 2 - 128, c.height / 2 - 96, 256, 192, 0, 0, 128, 96);
+    t.getContext("2d")?.drawImage(c, c.width / 2 - 128, c.height / 2 - 96, 256, 192, 0, 0, 128, 96);
     addDefect({
       rollId: activeRollId,
       sessionId: activeSessionId,

@@ -17,6 +17,7 @@ export interface RollTicketProps {
 export function RollTicketModal({ roll, buyer, score = 0, pass = true }: RollTicketProps) {
   const [open, setOpen] = useState(false);
   const [qrUrl, setQrUrl] = useState("");
+  if (!roll) return null;
   const cuttableW = roll.cuttableWidthIn ?? (roll.widthIn - 1.0);
   const avgGsm = roll.gsmMeasured || Math.round(((roll.gsmLeft ?? roll.gsm) + (roll.gsmCenter ?? roll.gsm) + (roll.gsmRight ?? roll.gsm)) / 3);
 
