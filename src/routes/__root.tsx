@@ -37,29 +37,61 @@ function NotFoundComponent() {
 }
 
 function ErrorComponent({ error, reset }: ErrorComponentProps) {
-  console.error(error);
+  console.error("Root error boundary caught error:", error);
   const router = useRouter();
+
+  const errorMessage = error instanceof Error ? error.message : String(error || "");
+  const isChunkOrNetworkError =
+    errorMessage.includes("dynamically imported module") ||
+    errorMessage.includes("Failed to fetch") ||
+    errorMessage.includes("Loading chunk") ||
+    errorMessage.includes("404");
+
   useEffect(() => {
     reportError(error, { boundary: "tanstack_root_error_component" });
-  }, [error]);
+
+    // Auto-reload once if this is a deployment chunk mismatch error
+    if (typeof window !== "undefined" && isChunkOrNetworkError) {
+      const reloaded = sessionStorage.getItem("tensora_auto_chunk_reload");
+      if (!reloaded) {
+        sessionStorage.setItem("tensora_auto_chunk_reload", "1");
+        window.location.reload();
+      }
+    }
+  }, [error, isChunkOrNetworkError]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">This page didn't load</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Something went wrong. You can try again or head back.</p>
-        {error instanceof Error && error.message && (
+        <p className="mt-2 text-sm text-muted-foreground">
+          {isChunkOrNetworkError
+            ? "Tensora was updated with a new deployment. Reload the application to get the latest version."
+            : "Something went wrong. You can reload or head back."}
+        </p>
+        {errorMessage && (
           <p className="mt-2 font-mono text-[11px] text-muted-foreground/80 max-h-24 overflow-auto rounded bg-surface-2 p-2 border border-border text-left">
-            {error.message}
+            {errorMessage}
           </p>
         )}
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
+              if (typeof window !== "undefined") {
+                sessionStorage.removeItem("tensora_auto_chunk_reload");
+                window.location.reload();
+              }
+            }}
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            Reload application
+          </button>
+          <button
+            onClick={() => {
               router.invalidate();
               reset();
             }}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
           >
             Try again
           </button>
@@ -126,6 +158,19 @@ function RootComponent() {
 
   useEffect(() => {
     void import("@/lib/tensora/pwa-register").then((m) => m.registerTensoraSW());
+
+    // Listen for Vite dynamic import preload failures (new deployment asset hashes)
+    const handlePreloadError = () => {
+      const reloaded = sessionStorage.getItem("tensora_preload_reload");
+      if (!reloaded) {
+        sessionStorage.setItem("tensora_preload_reload", "1");
+        window.location.reload();
+      }
+    };
+    window.addEventListener("vite:preloadError", handlePreloadError);
+    return () => {
+      window.removeEventListener("vite:preloadError", handlePreloadError);
+    };
   }, []);
 
   useEffect(() => {

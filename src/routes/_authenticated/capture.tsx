@@ -26,6 +26,7 @@ import {
 } from "@/lib/tensora/data";
 
 export const Route = createFileRoute("/_authenticated/capture")({
+  ssr: false,
   validateSearch: tabSearch,
   head: () => ({
     meta: [
@@ -40,7 +41,7 @@ export const Route = createFileRoute("/_authenticated/capture")({
 
 function CapturePage() {
   const { tab = "live", pair, roll: queryRoll } = Route.useSearch();
-  const navigate = useNavigate({ from: "/capture" });
+  const navigate = useNavigate();
   const {
     activeRollId,
     activeSessionId,
@@ -55,7 +56,7 @@ function CapturePage() {
   } = useTensora();
   const canInspect = useCan("inspect");
   const defects = allDefects.filter((d) => d.rollId === activeRollId);
-  const cluster = useTensora((s) => s.alerts.find((a) => a.id === "ALR-0091"));
+  const cluster = useTensora((s) => s.alerts?.find((a) => a.id === "ALR-0091"));
   const currentRoll = rolls.find((r) => r.id === activeRollId) ?? rolls[0] ?? rollsSeed[0];
   const currentBuyer = (currentRoll && buyers.find((b) => b.id === currentRoll.buyerId)) ?? buyers[0] ?? buyersSeed[0];
 
@@ -107,10 +108,18 @@ function CapturePage() {
 
         <TabsContent value="live" className="space-y-4">
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
-            <Panel title="Tensora Optical Inspection Station" bodyClassName="p-3">
-              {canInspect ? <InspectionStation /> : <div className="grid aspect-video place-items-center rounded-lg border border-border bg-surface-2 p-6 text-center text-sm text-muted-foreground">Buyer Auditor accounts are read-only. Live inspection is available to plant inspectors.</div>}
-            </Panel>
-            <AuditMeter rollId={activeRollId} />
+            <div className="min-w-0">
+              {canInspect ? (
+                <InspectionStation />
+              ) : (
+                <div className="grid aspect-video place-items-center rounded-2xl border border-border bg-surface-2 p-6 text-center text-sm text-muted-foreground">
+                  Buyer Auditor accounts are read-only. Live inspection is available to plant inspectors.
+                </div>
+              )}
+            </div>
+            <div className="min-w-0">
+              <AuditMeter rollId={activeRollId} />
+            </div>
           </div>
           {cluster && (
             <div className="panel flex flex-col gap-3 border-major/40 bg-major/5 p-4 sm:flex-row sm:items-center">
