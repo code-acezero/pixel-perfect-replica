@@ -124,7 +124,7 @@ function TriagePage() {
 
       {/* Few-Shot Model Training Loop Transparency Card */}
       {showTrainingInfo && (
-        <div className="rounded-lg border border-border bg-surface-2 p-4 space-y-3">
+        <div className="liquid-card rounded-xl border border-border/70 bg-surface-2/90 backdrop-blur-md p-4 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-3">
             <div className="flex items-center gap-2">
               <Cpu className="h-4 w-4 text-telemetry" />

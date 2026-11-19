@@ -45,10 +45,11 @@ function SyncBadge() {
   return (
     <span
       className={cn(
-        "hidden sm:inline-flex h-8 items-center rounded-full border px-3 font-mono text-xs font-medium",
-        online ? "border-telemetry/40 text-telemetry bg-telemetry/10" : "border-minor/50 text-minor bg-minor/10"
+        "hidden sm:inline-flex h-8 items-center rounded-full border px-3 font-mono text-xs font-medium transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 active:scale-95",
+        online ? "border-telemetry/40 text-telemetry bg-telemetry/10 shadow-[0_0_12px_rgba(56,189,248,0.2)]" : "border-minor/50 text-minor bg-minor/10"
       )}
     >
+      <span className={cn("mr-1.5 h-2 w-2 rounded-full", online ? (syncing ? "bg-telemetry animate-ping" : "bg-telemetry") : "bg-minor")} />
       <span>{online ? (syncing ? "Syncing" : "Queued") : "Offline"}</span>
       {pending ? <span className="ml-1.5 font-bold">{pending}</span> : null}
     </span>
@@ -86,7 +87,7 @@ function AppSidebar() {
                       asChild
                       isActive={isActive(path, item.to)}
                       tooltip={item.module}
-                      className="h-8 text-xs font-medium rounded-md transition-colors"
+                      className="h-8 text-xs font-medium rounded-md transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:translate-x-1 active:scale-[0.98]"
                     >
                       <Link to={item.to} onClick={() => setOpenMobile(false)}>
                         <item.icon className="h-4 w-4" />
@@ -119,7 +120,7 @@ function AlertsBell() {
     <Popover>
       <PopoverTrigger asChild>
         <button
-          className="relative grid h-8 w-8 shrink-0 place-items-center rounded-full border border-border/80 bg-surface-2/60 hover:bg-surface-2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+          className="relative grid h-8 w-8 shrink-0 place-items-center rounded-full border border-border/80 bg-surface-2/60 hover:bg-surface-2 text-muted-foreground hover:text-foreground hover:-translate-y-0.5 hover:shadow-[0_4px_14px_-2px_rgba(6,182,212,0.2)] active:scale-95 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer"
           aria-label="Alerts"
         >
           <Bell className="h-3.5 w-3.5" />
@@ -166,7 +167,7 @@ function UserMenu() {
     <Popover>
       <PopoverTrigger asChild>
         <button
-          className="flex h-8 items-center gap-1.5 rounded-full border border-border/80 bg-surface-2/60 pl-1 pr-2 text-xs hover:bg-surface-2 transition-colors cursor-pointer"
+          className="flex h-8 items-center gap-1.5 rounded-full border border-border/80 bg-surface-2/60 pl-1 pr-2 text-xs hover:bg-surface-2 hover:-translate-y-0.5 hover:shadow-[0_4px_16px_-2px_rgba(6,182,212,0.2)] active:scale-95 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer"
           aria-label="Account"
         >
           <span className="grid h-6 w-6 place-items-center rounded-full bg-primary/20 font-mono text-[10px] font-bold text-primary">
@@ -210,7 +211,7 @@ function TopBar({ onOpenCommand }: { onOpenCommand: () => void }) {
             <Link
               to="/trace/$rollId"
               params={{ rollId: roll.id }}
-              className="inline-flex h-8 items-center rounded-full border border-primary/30 bg-primary/10 px-3 font-mono text-xs font-semibold text-primary hover:bg-primary/20 transition-colors shrink-0"
+              className="inline-flex h-8 items-center rounded-full border border-primary/30 bg-primary/10 px-3 font-mono text-xs font-semibold text-primary hover:bg-primary/20 hover:-translate-y-0.5 hover:shadow-[0_4px_14px_-2px_rgba(6,182,212,0.3)] active:scale-95 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] shrink-0"
               title={`Active roll: ${roll.id} · ${roll.article}`}
             >
               <span>Roll #{roll.id}</span>
@@ -228,7 +229,7 @@ function TopBar({ onOpenCommand }: { onOpenCommand: () => void }) {
               setLanguage(next);
               toast(next === "bn" ? "বাংলা মোড সক্রিয় (Bengali Mill Operator Mode)" : "Switched to English");
             }}
-            className="flex h-8 items-center gap-1.5 rounded-full border border-border/80 bg-surface-2/60 px-2.5 text-xs font-mono font-medium text-muted-foreground hover:text-foreground hover:bg-surface-2 transition-colors cursor-pointer"
+            className="flex h-8 items-center gap-1.5 rounded-full border border-border/80 bg-surface-2/60 px-2.5 text-xs font-mono font-medium text-muted-foreground hover:text-foreground hover:bg-surface-2 hover:-translate-y-0.5 hover:shadow-[0_4px_14px_-2px_rgba(6,182,212,0.2)] active:scale-95 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer"
             title="Toggle Language / ভাষা পরিবর্তন (English / বাংলা)"
           >
             <Languages className="h-3.5 w-3.5 text-telemetry" />
@@ -236,7 +237,7 @@ function TopBar({ onOpenCommand }: { onOpenCommand: () => void }) {
           </button>
           <button
             onClick={onOpenCommand}
-            className="flex h-8 items-center gap-2 rounded-full border border-border/80 bg-surface-2/60 px-3 text-xs text-muted-foreground hover:bg-surface-2 hover:text-foreground transition-colors cursor-pointer"
+            className="flex h-8 items-center gap-2 rounded-full border border-border/80 bg-surface-2/60 px-3 text-xs text-muted-foreground hover:bg-surface-2 hover:text-foreground hover:-translate-y-0.5 hover:shadow-[0_4px_14px_-2px_rgba(6,182,212,0.2)] active:scale-95 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer"
             title="Global Command Palette (Ctrl+K or ⌘K)"
           >
             <Search className="h-3.5 w-3.5" />
@@ -251,10 +252,10 @@ function TopBar({ onOpenCommand }: { onOpenCommand: () => void }) {
               toast(`Stream switched to ${next === "live" ? "Live Camera" : "Simulated Feed"}`);
             }}
             className={cn(
-              "flex h-8 items-center rounded-full border px-3 text-xs font-mono font-medium transition-all cursor-pointer",
+              "flex h-8 items-center rounded-full border px-3 text-xs font-mono font-medium hover:-translate-y-0.5 active:scale-95 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer",
               streamMode === "live"
-                ? "border-telemetry/50 bg-telemetry/10 text-telemetry shadow-[0_0_8px_rgba(56,189,248,0.2)]"
-                : "border-border/80 bg-surface-2/60 text-muted-foreground hover:text-foreground hover:bg-surface-2"
+                ? "border-telemetry/50 bg-telemetry/10 text-telemetry shadow-[0_0_12px_rgba(56,189,248,0.25)]"
+                : "border-border/80 bg-surface-2/60 text-muted-foreground hover:text-foreground hover:bg-surface-2 hover:shadow-[0_4px_14px_-2px_rgba(6,182,212,0.2)]"
             )}
             title={`Current: ${streamMode === "live" ? "Live Camera Feed" : "Simulated Factory Stream"}. Click to toggle.`}
           >
@@ -369,15 +370,15 @@ function BottomNav() {
           key={i.to}
           to={i.to}
           className={cn(
-            "flex flex-col items-center gap-1 py-2.5 text-[10px] font-medium",
-            isActive(path, i.to) ? "text-primary" : "text-muted-foreground",
+            "flex flex-col items-center gap-1 py-2.5 text-[10px] font-medium transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-90",
+            isActive(path, i.to) ? "text-primary scale-105" : "text-muted-foreground hover:text-foreground",
           )}
         >
           <i.icon className="h-5 w-5" />
           {i.label}
         </Link>
       ))}
-      <button onClick={() => setOpenMobile(true)} className="flex flex-col items-center gap-1 py-2.5 text-[10px] font-medium text-muted-foreground">
+      <button onClick={() => setOpenMobile(true)} className="flex flex-col items-center gap-1 py-2.5 text-[10px] font-medium text-muted-foreground transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-90 hover:text-foreground cursor-pointer">
         <Menu className="h-5 w-5" />
         More
       </button>

@@ -74,10 +74,10 @@ export function Stat({
     telemetry: "text-telemetry",
   }[tone];
   return (
-    <div className="panel p-4">
+    <div className="panel p-4 transition-all duration-350 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_12px_28px_-6px_rgba(0,0,0,0.5),0_0_16px_-4px_rgba(6,182,212,0.2)]">
       <div className="flex items-center justify-between">
         <span className="label-caps">{label}</span>
-        {Icon && <Icon className="h-4 w-4 text-muted-foreground" />}
+        {Icon && <Icon className="h-4 w-4 text-muted-foreground transition-transform duration-300 group-hover:scale-110" />}
       </div>
       <div className={cn("mt-2 font-mono text-2xl font-semibold tabular-nums", toneCls)}>
         {value}
@@ -93,7 +93,7 @@ export function SeverityBadge({ points }: { points: number }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5 font-mono text-[11px] font-semibold",
+        "inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5 font-mono text-[11px] font-semibold transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 active:scale-95",
         major ? "border-major/40 bg-major/10 text-major" : "border-minor/40 bg-minor/10 text-minor",
       )}
     >
@@ -121,7 +121,7 @@ export function Tag({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 whitespace-nowrap rounded-sm border px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider",
+        "inline-flex items-center gap-1 whitespace-nowrap rounded-sm border px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 active:scale-95",
         cls,
         className,
       )}
@@ -135,9 +135,9 @@ export function VerdictBadge({ pass, large = false }: { pass: boolean; large?: b
   return (
     <div
       className={cn(
-        "rounded-md border font-mono font-bold tracking-wide",
-        large ? "px-4 py-3 text-sm" : "px-2 py-1 text-[11px]",
-        pass ? "border-pass/50 bg-pass/15 text-pass" : "pulse-major border-major/60 bg-major/15 text-major",
+        "rounded-md border font-mono font-bold tracking-wide transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.01]",
+        large ? "px-4 py-3 text-sm shadow-md" : "px-2 py-1 text-[11px]",
+        pass ? "border-pass/50 bg-pass/15 text-pass shadow-[0_0_15px_-3px_rgba(16,185,129,0.25)]" : "pulse-major border-major/60 bg-major/15 text-major shadow-[0_0_20px_-2px_rgba(239,68,68,0.35)]",
       )}
     >
       {pass ? "STATUS: PASS (Export Ready)" : "STATUS: REJECT (Penalty Threshold Exceeded)"}

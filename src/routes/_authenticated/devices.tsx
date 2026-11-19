@@ -195,9 +195,9 @@ function DevicesPage() {
           const Icon = ICON[d.kind];
           const roleInfo = ROLE_BADGE[d.streamRole || "overhead_main"];
           return (
-            <Panel key={d.id} className="relative overflow-hidden">
+            <Panel key={d.id} className="relative overflow-hidden hover:-translate-y-1 hover:shadow-[0_16px_36px_-8px_rgba(0,0,0,0.55),0_0_24px_-4px_rgba(6,182,212,0.25)] hover:border-primary/40 transition-all duration-350 ease-[cubic-bezier(0.16,1,0.3,1)]">
               <div className="flex items-start gap-3">
-                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-md border border-border bg-surface-2">
+                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-border/80 bg-surface-2 transition-transform duration-300 group-hover:scale-105">
                   <Icon className="h-5 w-5 text-telemetry" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -209,7 +209,7 @@ function DevicesPage() {
                     <Tag tone={roleInfo.tone}>{roleInfo.label}</Tag>
                   </div>
                 </div>
-                <button onClick={() => handleToggleStatus(d)} title="Click to toggle status">
+                <button onClick={() => handleToggleStatus(d)} title="Click to toggle status" className="cursor-pointer active:scale-95 transition-transform">
                   <Tag tone={d.status === "online" ? "pass" : d.status === "idle" ? "minor" : "default"}>
                     {d.status}
                   </Tag>
@@ -246,8 +246,8 @@ function DevicesPage() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => handleToggleTorch(d)}
-                    className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-mono text-[10px] transition-colors ${
-                      d.torchOn ? "bg-amber-500/20 text-amber-300 border border-amber-500/40" : "bg-surface-2 hover:bg-surface-3 text-muted-foreground"
+                    className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-mono text-[10px] transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 active:scale-95 cursor-pointer ${
+                      d.torchOn ? "bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-[0_0_10px_rgba(245,158,11,0.25)]" : "bg-surface-2 hover:bg-surface-3 text-muted-foreground"
                     }`}
                     title="Toggle hardware inspection flashlight"
                   >
@@ -257,9 +257,9 @@ function DevicesPage() {
 
                   <button
                     onClick={() => handleCalibrate(d)}
-                    className={`rounded px-1.5 py-0.5 font-mono text-[10px] border transition-colors ${
+                    className={`rounded px-1.5 py-0.5 font-mono text-[10px] border transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 active:scale-95 cursor-pointer ${
                       d.calibrated
-                        ? "border-pass/30 bg-pass/10 text-pass"
+                        ? "border-pass/30 bg-pass/10 text-pass shadow-[0_0_8px_rgba(16,185,129,0.2)]"
                         : "border-minor/40 bg-minor/10 text-minor hover:bg-minor/20"
                     }`}
                   >
