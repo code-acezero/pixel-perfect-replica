@@ -1,4 +1,4 @@
-import { useState, useEffect, type ReactNode } from "react";
+import { useState, useEffect, useMemo, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { LogOut, Bell, Camera, ClipboardCheck, Activity, Menu, Radio, MonitorPlay, Search, Layers, FileBadge, Wrench, QrCode, SlidersHorizontal, ChevronDown, Languages } from "lucide-react";
@@ -31,9 +31,10 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-import { NAV_GROUPS } from "./nav";
+import { getNavGroups } from "./nav";
 import { Wordmark } from "./brand";
 import { useTensora } from "@/lib/tensora/store";
+import { useTranslation } from "@/lib/tensora/i18n";
 import { SITE } from "@/lib/tensora/data";
 import { cn } from "@/lib/utils";
 import { fmtTime } from "./ui";
@@ -41,6 +42,7 @@ import { useSync } from "@/lib/tensora/offline";
 
 function SyncBadge() {
   const { online, pending, syncing } = useSync();
+  const { t } = useTranslation();
   if (online && !pending) return null;
   return (
     <span
@@ -50,7 +52,7 @@ function SyncBadge() {
       )}
     >
       <span className={cn("mr-1.5 h-2 w-2 rounded-full", online ? (syncing ? "bg-telemetry animate-ping" : "bg-telemetry") : "bg-minor")} />
-      <span>{online ? (syncing ? "Syncing" : "Queued") : "Offline"}</span>
+      <span>{online ? (syncing ? t("topbar.syncing") : t("topbar.queued")) : t("topbar.offline")}</span>
       {pending ? <span className="ml-1.5 font-bold">{pending}</span> : null}
     </span>
   );
@@ -68,13 +70,17 @@ function AppSidebar() {
   const path = usePath();
   const { state, setOpenMobile } = useSidebar();
   const collapsed = state === "collapsed";
+  const language = useTensora((s) => s.language);
+  const isBn = language === "bn";
+  const navGroups = useMemo(() => getNavGroups(language), [language]);
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border px-3.5 py-3">
         <Wordmark compact={collapsed} />
       </SidebarHeader>
       <SidebarContent className="gap-1 py-1 px-1.5 overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {NAV_GROUPS.map((g) => (
+        {navGroups.map((g) => (
           <SidebarGroup key={g.label} className="p-0 pb-1">
             <SidebarGroupLabel className="h-6 px-2 text-[10px] font-mono font-semibold tracking-wider text-muted-foreground/50">
               {g.label}
@@ -104,8 +110,12 @@ function AppSidebar() {
       <SidebarFooter className="border-t border-sidebar-border px-3 py-2.5">
         {!collapsed && (
           <div className="font-mono text-[10px] leading-tight text-muted-foreground/75 select-none">
-            <div className="truncate font-semibold text-foreground/80">Tensora v3.4.0 · TX-Vision-9</div>
-            <div className="truncate text-[9px] text-muted-foreground/50 mt-0.5">© Araneid Industrial Systems</div>
+            <div className="truncate font-semibold text-foreground/80">
+              {isBn ? "টেনসোরা v৩.৪.০ · এরানিড" : "Tensora v3.4.0 · TX-Vision-9"}
+            </div>
+            <div className="truncate text-[9px] text-muted-foreground/50 mt-0.5">
+              {isBn ? "© এরানিড ইন্ডাস্ট্রিয়াল সিস্টেমস" : "© Araneid Industrial Systems"}
+            </div>
           </div>
         )}
       </SidebarFooter>
@@ -115,6 +125,8 @@ function AppSidebar() {
 
 function AlertsBell() {
   const alerts = useTensora((s) => s.alerts);
+  const language = useTensora((s) => s.language);
+  const isBn = language === "bn";
   const majors = alerts.filter((a) => a.level === "major").length;
   return (
     <Popover>
@@ -132,7 +144,9 @@ function AlertsBell() {
         </button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 p-0">
-        <div className="border-b border-border px-3 py-2 label-caps">Active alerts</div>
+        <div className="border-b border-border px-3 py-2 label-caps">
+          {isBn ? "সক্রিয় সতর্কতা সমূহ" : "Active alerts"}
+        </div>
         <div className="max-h-80 overflow-auto">
           {alerts.map((a) => (
             <Link key={a.id} to="/insight" className="block border-b border-border px-3 py-2.5 last:border-0 hover:bg-accent">
@@ -152,6 +166,8 @@ function AlertsBell() {
 
 function UserMenu() {
   const me = useTensora((s) => s.me);
+  const language = useTensora((s) => s.language);
+  const isBn = language === "bn";
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   if (!me) return null;
@@ -182,9 +198,11 @@ function UserMenu() {
       <PopoverContent align="end" className="w-64 p-3">
         <div className="text-sm font-medium">{me.name}</div>
         <div className="truncate text-xs text-muted-foreground">{me.email}</div>
-        <div className="mt-2 inline-block rounded border border-telemetry/40 px-1.5 py-0.5 font-mono text-[10px] text-telemetry">{ROLE_LABEL[me.role]}</div>
+        <div className="mt-2 inline-block rounded border border-telemetry/40 px-1.5 py-0.5 font-mono text-[10px] text-telemetry">
+          {ROLE_LABEL[me.role]}
+        </div>
         <button onClick={signOut} className="mt-3 flex w-full items-center gap-2 rounded-md border border-border px-3 py-2 text-sm hover:bg-accent cursor-pointer">
-          <LogOut className="h-4 w-4" /> Sign out
+          <LogOut className="h-4 w-4" /> {isBn ? "লগ আউট (Sign out)" : "Sign out"}
         </button>
       </PopoverContent>
     </Popover>
@@ -193,6 +211,7 @@ function UserMenu() {
 
 function TopBar({ onOpenCommand }: { onOpenCommand: () => void }) {
   const { streamMode, setStreamMode, activeRollId, rolls, language, setLanguage } = useTensora();
+  const isBn = language === "bn";
   const roll = rolls.find((r) => r.id === activeRollId) ?? rolls[0] ?? { id: activeRollId, article: "100% Combed Cotton Single Jersey", gsm: 180 };
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/95 print:hidden">
@@ -214,7 +233,7 @@ function TopBar({ onOpenCommand }: { onOpenCommand: () => void }) {
               className="inline-flex h-8 items-center rounded-full border border-primary/40 bg-surface px-3 font-mono text-xs font-semibold text-primary shadow-[inset_1px_1px_1.5px_rgba(255,255,255,0.1),inset_-1px_-1.5px_2px_rgba(0,0,0,0.4),0_2px_5px_rgba(0,0,0,0.5)] hover:bg-surface-2 hover:-translate-y-0.5 active:scale-95 transition-all duration-200 ease-[cubic-bezier(0.18,0.9,0.28,1)] shrink-0"
               title={`Active roll: ${roll.id} · ${roll.article}`}
             >
-              <span>Roll #{roll.id}</span>
+              <span>{isBn ? `রোল #${roll.id}` : `Roll #${roll.id}`}</span>
             </Link>
           </div>
         </div>
@@ -227,13 +246,13 @@ function TopBar({ onOpenCommand }: { onOpenCommand: () => void }) {
             onClick={() => {
               const next = language === "en" ? "bn" : "en";
               setLanguage(next);
-              toast(next === "bn" ? "বাংলা মোড সক্রিয় (Bengali Mill Operator Mode)" : "Switched to English");
+              toast.success(next === "bn" ? "বাংলা মোড সক্রিয় (Bengali Mill Operator Mode)" : "Switched to English");
             }}
             className="flex h-8 items-center gap-1.5 rounded-full border border-border/80 bg-surface-2 px-2.5 text-xs font-mono font-medium text-muted-foreground hover:text-foreground shadow-[inset_1px_1px_1.5px_rgba(255,255,255,0.08),inset_-1px_-1.5px_2px_rgba(0,0,0,0.4),0_2px_5px_rgba(0,0,0,0.5)] hover:border-primary/40 hover:-translate-y-0.5 active:scale-95 transition-all duration-200 ease-[cubic-bezier(0.18,0.9,0.28,1)] cursor-pointer"
             title="Toggle Language / ভাষা পরিবর্তন (English / বাংলা)"
           >
             <Languages className="h-3.5 w-3.5 text-telemetry" />
-            <span>{language === "en" ? "EN" : "বাং"}</span>
+            <span>{language === "en" ? "EN / বাং" : "বাং / EN"}</span>
           </button>
           <button
             onClick={onOpenCommand}
@@ -241,7 +260,7 @@ function TopBar({ onOpenCommand }: { onOpenCommand: () => void }) {
             title="Global Command Palette (Ctrl+K or ⌘K)"
           >
             <Search className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline text-xs">Search...</span>
+            <span className="hidden sm:inline text-xs">{isBn ? "অনুসন্ধান…" : "Search..."}</span>
             <kbd className="hidden sm:inline-flex h-4 items-center rounded border border-border px-1 font-mono text-[9px] text-muted-foreground/80 shadow-[1px_1px_0px_rgba(0,0,0,0.8)]">⌘K</kbd>
           </button>
           <button
@@ -249,7 +268,7 @@ function TopBar({ onOpenCommand }: { onOpenCommand: () => void }) {
             onClick={() => {
               const next = streamMode === "live" ? "sim" : "live";
               setStreamMode(next);
-              toast(`Stream switched to ${next === "live" ? "Live Camera" : "Simulated Feed"}`);
+              toast.info(next === "live" ? (isBn ? "লাইভ ক্যামেরা স্ট্রিমে পরিবর্তিত হয়েছে" : "Stream switched to Live Camera") : (isBn ? "সিমুলেটেড ফ্যাক্টরি ফিডে পরিবর্তিত হয়েছে" : "Stream switched to Simulated Feed"));
             }}
             className={cn(
               "flex h-8 items-center rounded-full border px-3 text-xs font-mono font-medium hover:-translate-y-0.5 active:scale-95 transition-all duration-200 ease-[cubic-bezier(0.18,0.9,0.28,1)] cursor-pointer",
@@ -259,7 +278,7 @@ function TopBar({ onOpenCommand }: { onOpenCommand: () => void }) {
             )}
             title={`Current: ${streamMode === "live" ? "Live Camera Feed" : "Simulated Factory Stream"}. Click to toggle.`}
           >
-            <span>{streamMode === "live" ? "Live Feed" : "Sim Stream"}</span>
+            <span>{isBn ? (streamMode === "live" ? "লাইভ ফিড" : "সিমুলেশন") : (streamMode === "live" ? "Live Feed" : "Sim Stream")}</span>
           </button>
           <AlertsBell />
           <UserMenu />
@@ -271,7 +290,9 @@ function TopBar({ onOpenCommand }: { onOpenCommand: () => void }) {
 
 function GlobalCommandPalette({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const navigate = useNavigate();
-  const { rolls, setActiveRoll, streamMode, setStreamMode } = useTensora();
+  const { rolls, setActiveRoll, streamMode, setStreamMode, language } = useTensora();
+  const isBn = language === "bn";
+  const navGroups = useMemo(() => getNavGroups(language), [language]);
 
   const handleSelect = (action: () => void) => {
     action();
@@ -280,40 +301,40 @@ function GlobalCommandPalette({ open, onOpenChange }: { open: boolean; onOpenCha
 
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
-      <CommandInput placeholder="Type a command, search rolls, or jump to module..." />
+      <CommandInput placeholder={isBn ? "কমান্ড লিখুন, রোল খুঁজুন অথবা মডিউলে যান..." : "Type a command, search rolls, or jump to module..."} />
       <CommandList>
-        <CommandEmpty>No matching command or inventory found.</CommandEmpty>
+        <CommandEmpty>{isBn ? "কোনো মিল খুঁজে পাওয়া যায়নি।" : "No matching command or inventory found."}</CommandEmpty>
 
-        <CommandGroup heading="Quick Actions">
+        <CommandGroup heading={isBn ? "দ্রুত অ্যাকশন (Quick Actions)" : "Quick Actions"}>
           <CommandItem onSelect={() => handleSelect(() => navigate({ to: "/capture", search: { tab: "live" } }))}>
             <Camera className="mr-2 h-4 w-4 text-telemetry" />
-            <span>Start Live Optical Inspection Station</span>
+            <span>{isBn ? "লাইভ অপটিক্যাল ইন্সপেকশন শুরু করুন" : "Start Live Optical Inspection Station"}</span>
           </CommandItem>
           <CommandItem onSelect={() => handleSelect(() => navigate({ to: "/capture", search: { tab: "setup" } }))}>
             <QrCode className="mr-2 h-4 w-4 text-primary" />
-            <span>Scan / Create Roll Ticket</span>
+            <span>{isBn ? "রোল টিকিট স্ক্যান / তৈরি করুন" : "Scan / Create Roll Ticket"}</span>
           </CommandItem>
           <CommandItem onSelect={() => handleSelect(() => navigate({ to: "/certify" }))}>
             <FileBadge className="mr-2 h-4 w-4 text-pass" />
-            <span>Issue Cryptographic Quality Certificate</span>
+            <span>{isBn ? "ক্রিপ্টোগ্রাফিক কোয়ালিটি সার্টিফিকেট ইস্যু করুন" : "Issue Cryptographic Quality Certificate"}</span>
           </CommandItem>
           <CommandItem onSelect={() => handleSelect(() => navigate({ to: "/devices" }))}>
             <Wrench className="mr-2 h-4 w-4 text-minor" />
-            <span>Pair Camera Device (Phone, Tablet, USB, IP)</span>
+            <span>{isBn ? "ক্যামেরা ডিভাইস সংযুক্ত করুন (ফোন, ট্যাবলেট, USB, IP)" : "Pair Camera Device (Phone, Tablet, USB, IP)"}</span>
           </CommandItem>
           <CommandItem onSelect={() => handleSelect(() => {
             const nextMode = streamMode === "live" ? "sim" : "live";
             setStreamMode(nextMode);
-            toast(`Stream switched to ${nextMode === "live" ? "Live Camera" : "Simulated Feed"}`);
+            toast.info(nextMode === "live" ? (isBn ? "লাইভ ক্যামেরা ফিডে পরিবর্তিত হয়েছে" : "Stream switched to Live Camera") : (isBn ? "সিমুলেটেড ফিডে পরিবর্তিত হয়েছে" : "Stream switched to Simulated Feed"));
           })}>
             <Radio className="mr-2 h-4 w-4 text-telemetry" />
-            <span>Toggle Stream Mode (Currently: {streamMode === "live" ? "Live" : "Simulated"})</span>
+            <span>{isBn ? `স্ট্রীম মোড পরিবর্তন (বর্তমান: ${streamMode === "live" ? "লাইভ" : "সিমুলেশন"})` : `Toggle Stream Mode (Currently: ${streamMode === "live" ? "Live" : "Simulated"})`}</span>
           </CommandItem>
         </CommandGroup>
 
         <CommandSeparator />
 
-        <CommandGroup heading="Roll Inventory Register">
+        <CommandGroup heading={isBn ? "রোল ইনভেন্টরি রেজিস্টার" : "Roll Inventory Register"}>
           {rolls.slice(0, 8).map((r) => (
             <CommandItem
               key={r.id}
@@ -336,8 +357,8 @@ function GlobalCommandPalette({ open, onOpenChange }: { open: boolean; onOpenCha
 
         <CommandSeparator />
 
-        <CommandGroup heading="Navigation">
-          {NAV_GROUPS.flatMap((g) => g.items.map((item) => ({ ...item, group: g.label }))).map((item) => (
+        <CommandGroup heading={isBn ? "নেভিগেশন (Navigation)" : "Navigation"}>
+          {navGroups.flatMap((g) => g.items.map((item) => ({ ...item, group: g.label }))).map((item) => (
             <CommandItem
               key={item.to}
               value={`${item.title} ${item.group}`}
@@ -357,11 +378,13 @@ function GlobalCommandPalette({ open, onOpenChange }: { open: boolean; onOpenCha
 function BottomNav() {
   const path = usePath();
   const { setOpenMobile } = useSidebar();
+  const language = useTensora((s) => s.language);
+  const isBn = language === "bn";
   const items = [
-    { to: "/", label: "Command", icon: Activity },
-    { to: "/capture", label: "Capture", icon: Camera },
-    { to: "/triage", label: "Triage", icon: ClipboardCheck },
-    { to: "/insight", label: "Alerts", icon: Bell },
+    { to: "/", label: isBn ? "কমান্ড" : "Command", icon: Activity },
+    { to: "/capture", label: isBn ? "ক্যাপচার" : "Capture", icon: Camera },
+    { to: "/triage", label: isBn ? "ট্রায়াজ" : "Triage", icon: ClipboardCheck },
+    { to: "/insight", label: isBn ? "অ্যালার্ট" : "Alerts", icon: Bell },
   ];
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden print:hidden">
@@ -380,7 +403,7 @@ function BottomNav() {
       ))}
       <button onClick={() => setOpenMobile(true)} className="flex flex-col items-center gap-1 py-2.5 text-[10px] font-medium text-muted-foreground transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-90 hover:text-foreground cursor-pointer">
         <Menu className="h-5 w-5" />
-        More
+        {isBn ? "আরও" : "More"}
       </button>
     </nav>
   );

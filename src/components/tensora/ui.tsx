@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
+import { useTensora } from "@/lib/tensora/store";
 import { cn } from "@/lib/utils";
 
 export function PageHeader({
@@ -132,6 +133,8 @@ export function Tag({
 }
 
 export function VerdictBadge({ pass, large = false }: { pass: boolean; large?: boolean }) {
+  const language = useTensora((s) => s.language);
+  const isBn = language === "bn";
   return (
     <div
       className={cn(
@@ -140,7 +143,9 @@ export function VerdictBadge({ pass, large = false }: { pass: boolean; large?: b
         pass ? "border-pass/80 bg-pass/20 text-pass" : "pulse-major border-major/80 bg-major/20 text-major",
       )}
     >
-      {pass ? "STATUS: PASS (Export Ready)" : "STATUS: REJECT (Penalty Threshold Exceeded)"}
+      {pass
+        ? (isBn ? "স্ট্যাটাস: পাস (রপ্তানি উপযোগী / PASS)" : "STATUS: PASS (Export Ready)")
+        : (isBn ? "স্ট্যাটাস: রিজেক্ট (ত্রুটির সীমা অতিক্রম / REJECT)" : "STATUS: REJECT (Penalty Threshold Exceeded)")}
     </div>
   );
 }

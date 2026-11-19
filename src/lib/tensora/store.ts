@@ -114,11 +114,28 @@ interface TensoraState extends Snapshot {
 // Inspection progress is flushed to the cloud every few seconds rather than every tick.
 let progressTimer: ReturnType<typeof setTimeout> | null = null;
 
+const getInitialLanguage = (): "en" | "bn" => {
+  if (typeof window !== "undefined") {
+    try {
+      const saved = localStorage.getItem("tensora_lang");
+      if (saved === "bn" || saved === "en") return saved;
+    } catch {}
+  }
+  return "en";
+};
+
 export const useTensora = create<TensoraState>((set, get) => ({
   ready: false,
   me: null,
-  language: "en",
-  setLanguage: (language) => set({ language }),
+  language: getInitialLanguage(),
+  setLanguage: (language) => {
+    try {
+      if (typeof window !== "undefined") {
+        localStorage.setItem("tensora_lang", language);
+      }
+    } catch {}
+    set({ language });
+  },
   floorAlarmEnabled: true,
   setFloorAlarmEnabled: (floorAlarmEnabled) => set({ floorAlarmEnabled }),
   streamMode: "sim",

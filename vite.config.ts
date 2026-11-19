@@ -27,6 +27,9 @@ export default defineConfig(({ command }) => {
     server: {
       port: 8080,
       host: true,
+      watch: {
+        ignored: ["**/.vercel/**", "**/.output/**", "**/dist/**"],
+      },
     },
     plugins: [
       tsConfigPaths({ projects: ["./tsconfig.json"] }),

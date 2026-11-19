@@ -10,8 +10,8 @@
  */
 
 @theme inline {
-  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Chakra Petch", "IBM Plex Sans", sans-serif;
+  --font-sans: "IBM Plex Sans", "Hind Siliguri", "Noto Sans Bengali", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Chakra Petch", "Hind Siliguri", "IBM Plex Sans", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
   --radius-sm: calc(var(--radius) - 4px);
@@ -474,4 +474,100 @@
   .certificate td {
     color: #0f172a !important;
   }
+}
+
+/*
+ * Tensora Industrial HUD Toast Styling (Top-Right Machine Notification)
+ */
+[data-sonner-toaster] {
+  --normal-bg: #090e17;
+  --normal-border: #334155;
+  --normal-text: #f8fafc;
+  font-family: var(--font-sans);
+  z-index: 999999 !important;
+}
+
+[data-sonner-toast] {
+  background: rgba(12, 18, 30, 0.96) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1.5px solid rgba(71, 85, 105, 0.8) !important;
+  color: #f1f5f9 !important;
+  border-radius: 12px !important;
+  padding: 12px 16px !important;
+  box-shadow: 
+    inset 1.5px 1.5px 2px rgba(255, 255, 255, 0.12),
+    inset -2px -2px 4px rgba(0, 0, 0, 0.7),
+    0 12px 36px rgba(0, 0, 0, 0.85),
+    0 2px 10px rgba(0, 0, 0, 0.5) !important;
+  transition: all 0.28s cubic-bezier(0.18, 0.9, 0.28, 1) !important;
+}
+
+[data-sonner-toast]:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 
+    inset 1.5px 1.5px 2px rgba(255, 255, 255, 0.18),
+    inset -2px -2px 4px rgba(0, 0, 0, 0.8),
+    0 16px 42px rgba(0, 0, 0, 0.9) !important;
+}
+
+[data-sonner-toast][data-type="success"] {
+  border-left: 5px solid #10b981 !important;
+  box-shadow: 
+    inset 1.5px 1.5px 2px rgba(255, 255, 255, 0.12),
+    inset -2px -2px 4px rgba(0, 0, 0, 0.7),
+    0 0 24px rgba(16, 185, 129, 0.22),
+    0 12px 36px rgba(0, 0, 0, 0.85) !important;
+}
+
+[data-sonner-toast][data-type="error"] {
+  border-left: 5px solid #ef4444 !important;
+  box-shadow: 
+    inset 1.5px 1.5px 2px rgba(255, 255, 255, 0.12),
+    inset -2px -2px 4px rgba(0, 0, 0, 0.7),
+    0 0 28px rgba(239, 68, 68, 0.28),
+    0 12px 36px rgba(0, 0, 0, 0.85) !important;
+}
+
+[data-sonner-toast][data-type="info"] {
+  border-left: 5px solid #38bdf8 !important;
+  box-shadow: 
+    inset 1.5px 1.5px 2px rgba(255, 255, 255, 0.12),
+    inset -2px -2px 4px rgba(0, 0, 0, 0.7),
+    0 0 20px rgba(56, 189, 248, 0.2),
+    0 12px 36px rgba(0, 0, 0, 0.85) !important;
+}
+
+[data-sonner-toast][data-type="warning"] {
+  border-left: 5px solid #f59e0b !important;
+  box-shadow: 
+    inset 1.5px 1.5px 2px rgba(255, 255, 255, 0.12),
+    inset -2px -2px 4px rgba(0, 0, 0, 0.7),
+    0 0 20px rgba(245, 158, 11, 0.2),
+    0 12px 36px rgba(0, 0, 0, 0.85) !important;
+}
+
+[data-sonner-toast] [data-title] {
+  font-weight: 600 !important;
+  font-size: 13px !important;
+  letter-spacing: -0.01em !important;
+}
+
+[data-sonner-toast] [data-description] {
+  color: #94a3b8 !important;
+  font-size: 11.5px !important;
+  margin-top: 2px !important;
+  line-height: 1.4 !important;
+}
+
+[data-sonner-toast] [data-close-button] {
+  background: #1e293b !important;
+  border: 1px solid #475569 !important;
+  color: #94a3b8 !important;
+  transition: all 0.15s ease !important;
+}
+
+[data-sonner-toast] [data-close-button]:hover {
+  background: #334155 !important;
+  color: #ffffff !important;
 }
