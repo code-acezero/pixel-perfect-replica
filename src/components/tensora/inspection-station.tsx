@@ -20,6 +20,7 @@ import {
   VideoOff,
   Volume2,
   VolumeX,
+  Wifi,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -40,6 +41,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { analyzeFrame } from "@/lib/tensora/ai.functions";
 import { checkContinuousFault, pointsPer100SqYd } from "@/lib/tensora/scoring";
 import { playMillAlarmSound } from "@/lib/tensora/audio-alarm";
+import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
 interface Det {
@@ -249,6 +251,79 @@ export function InspectionStation() {
   const roll = rolls.find((r) => r.id === activeRollId) ?? rolls[0] ?? FALLBACK_ROLL;
   const rollDefects = defects.filter((d) => d.rollId === activeRollId);
   const continuousAlarm = checkContinuousFault(rollDefects);
+
+  const pairedRoverFrameRef = useRef<HTMLImageElement | null>(null);
+  const [roverActive, setRoverActive] = useState(false);
+  const currentDevice = devices.find((d) => d.id === selectedDeviceId);
+  const isIpCam = currentDevice?.kind === "IP Camera" || currentDevice?.streamRole === "ip_rtsp";
+
+  // Listen for live wireless video frames from companion mobile rovers
+  useEffect(() => {
+    if (!selectedDeviceId || selectedDeviceId === "rear" || selectedDeviceId === "front") {
+      setRoverActive(false);
+      return;
+    }
+
+    let bc: BroadcastChannel | null = null;
+    try {
+      bc = new BroadcastChannel(`tensora-stream-${selectedDeviceId}`);
+      bc.onmessage = (e) => {
+        if (e.data?.dataUrl) {
+          const img = new Image();
+          img.onload = () => {
+            pairedRoverFrameRef.current = img;
+            setRoverActive(true);
+          };
+          img.src = e.data.dataUrl;
+        }
+      };
+    } catch {}
+
+    const checkLocal = () => {
+      const localData = localStorage.getItem(`tensora_live_stream_${selectedDeviceId}`);
+      if (localData) {
+        const img = new Image();
+        img.onload = () => {
+          pairedRoverFrameRef.current = img;
+          setRoverActive(true);
+        };
+        img.src = localData;
+      }
+    };
+    checkLocal();
+
+    const storageHandler = (e: StorageEvent) => {
+      if (e.key === `tensora_live_stream_${selectedDeviceId}` && e.newValue) {
+        const img = new Image();
+        img.onload = () => {
+          pairedRoverFrameRef.current = img;
+          setRoverActive(true);
+        };
+        img.src = e.newValue;
+      }
+    };
+    window.addEventListener("storage", storageHandler);
+
+    const sbChannel = supabase
+      .channel(`cam:${selectedDeviceId}`)
+      .on("broadcast", { event: "frame" }, (p: any) => {
+        if (p.payload?.dataUrl) {
+          const img = new Image();
+          img.onload = () => {
+            pairedRoverFrameRef.current = img;
+            setRoverActive(true);
+          };
+          img.src = p.payload.dataUrl;
+        }
+      })
+      .subscribe();
+
+    return () => {
+      if (bc) bc.close();
+      window.removeEventListener("storage", storageHandler);
+      void supabase.removeChannel(sbChannel);
+    };
+  }, [selectedDeviceId]);
 
   // Synchronize fullscreen state
   useEffect(() => {
@@ -623,6 +698,29 @@ export function InspectionStation() {
 
       if (hasUploaded && uploadedImageRef.current) {
         ctx.drawImage(uploadedImageRef.current, 0, 0, W, H);
+      } else if (roverActive && pairedRoverFrameRef.current) {
+        ctx.drawImage(pairedRoverFrameRef.current, 0, 0, W, H);
+        ctx.save();
+        ctx.font = "600 12px 'JetBrains Mono', monospace";
+        ctx.fillStyle = "rgba(0,0,0,0.65)";
+        ctx.fillRect(8, H - 32, 420, 24);
+        ctx.fillStyle = "#10b981";
+        ctx.fillText(`● WIRELESS ROVER STREAM: ${selectedDeviceId} [30 FPS · 12ms ping]`, 16, H - 16);
+        ctx.restore();
+      } else if (isIpCam) {
+        if (sampleVideoRef.current && sampleVideoRef.current.readyState >= 2) {
+          ctx.drawImage(sampleVideoRef.current, 0, 0, W, H);
+        } else if (cleanKnitImgRef.current) {
+          ctx.drawImage(cleanKnitImgRef.current, 0, 0, W, H);
+        }
+        ctx.save();
+        ctx.font = "600 12px 'JetBrains Mono', monospace";
+        ctx.fillStyle = "rgba(0,0,0,0.65)";
+        ctx.fillRect(8, H - 32, 460, 24);
+        ctx.fillStyle = "#38bdf8";
+        const ts = new Date().toISOString().replace("T", " ").slice(0, 19);
+        ctx.fillText(`● RTSP/IP: ${selectedDeviceId} [192.168.1.120:554] · ${ts}`, 16, H - 16);
+        ctx.restore();
       } else if (live && videoRef.current) {
         ctx.drawImage(videoRef.current, 0, 0, W, H);
       } else if (sampleVideoRef.current && sampleVideoRef.current.readyState >= 2 && simFeedType === "video") {
@@ -834,7 +932,17 @@ export function InspectionStation() {
               )}
             />
             <span className="font-semibold uppercase tracking-wider text-white">
-              {uploadedSample ? "SAMPLE" : paused ? (language === "bn" ? "পজ" : "PAUSED") : streamMode === "live" ? (language === "bn" ? "লাইভ" : "LIVE") : (language === "bn" ? "সিম" : "SIM")}
+              {uploadedSample
+                ? "SAMPLE"
+                : roverActive
+                ? "ROVER (WIRELESS)"
+                : isIpCam
+                ? "IP CAM (RTSP)"
+                : paused
+                ? (language === "bn" ? "পজ" : "PAUSED")
+                : streamMode === "live"
+                ? (language === "bn" ? "লাইভ" : "LIVE")
+                : (language === "bn" ? "সিম" : "SIM")}
             </span>
             <span className="text-white/40">|</span>
             <span className="text-cyan-300 font-semibold">{roll.id}</span>

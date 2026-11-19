@@ -13,6 +13,7 @@ import { InspectionStation } from "@/components/tensora/inspection-station";
 import { AuditMeter } from "@/components/tensora/audit-meter";
 import { DefectLedger } from "@/components/tensora/defect-ledger";
 import { RollTicketModal } from "@/components/tensora/roll-ticket";
+import { CompanionBroadcaster } from "@/components/tensora/companion-broadcaster";
 import { useTensora } from "@/lib/tensora/store";
 import { tabSearch } from "@/lib/tensora/search";
 import { useCan } from "@/lib/tensora/use-can";
@@ -36,11 +37,36 @@ export const Route = createFileRoute("/_authenticated/capture")({
       { property: "og:description", content: "Live AI fabric inspection from any camera." },
     ],
   }),
+  errorComponent: CaptureErrorFallback,
   component: CapturePage,
 });
 
+function CaptureErrorFallback({ error, reset }: { error: unknown; reset: () => void }) {
+  return (
+    <div className="flex min-h-[500px] items-center justify-center p-4">
+      <div className="max-w-md rounded-2xl border border-border/80 bg-surface-2 p-6 text-center shadow-2xl">
+        <div className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-destructive/15 text-destructive border border-destructive/30 mb-3">
+          <ScanLine className="h-6 w-6" />
+        </div>
+        <h2 className="text-base font-bold text-foreground">Optical Station Reload Needed</h2>
+        <p className="mt-1.5 text-xs text-muted-foreground">
+          {error instanceof Error ? error.message : "The camera viewfinder encountered a hardware or display sync issue."}
+        </p>
+        <div className="mt-5 flex justify-center gap-2">
+          <Button size="sm" onClick={() => reset()}>
+            Reset Station
+          </Button>
+          <Button size="sm" variant="outline" asChild>
+            <Link to="/">Command Center</Link>
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function CapturePage() {
-  const { tab = "live", pair, roll: queryRoll } = Route.useSearch();
+  const { tab = "live", pair, roll: queryRoll, mode } = Route.useSearch();
   const navigate = useNavigate();
   const {
     activeRollId,
@@ -60,20 +86,31 @@ function CapturePage() {
   const currentRoll = rolls.find((r) => r.id === activeRollId) ?? rolls[0] ?? rollsSeed[0];
   const currentBuyer = (currentRoll && buyers.find((b) => b.id === currentRoll.buyerId)) ?? buyers[0] ?? buyersSeed[0];
 
+  // If in companion broadcaster mode (e.g. phone scanned QR code or user clicked "Launch Broadcaster")
+  if (pair && mode === "broadcaster") {
+    return (
+      <CompanionBroadcaster
+        pairId={pair}
+        onExit={() => navigate({ to: "/capture", search: { tab: "live" } })}
+      />
+    );
+  }
+
   // Handle ?pair= query parameter from QR code scan
   useEffect(() => {
-    if (pair) {
+    if (pair && mode !== "broadcaster") {
       pairDevice(pair, {
-        name: `Paired Camera ${pair}`,
+        name: `Companion Rover ${pair}`,
+        kind: "Phone",
         location: sessionLocation,
         status: "online",
         lastSession: activeSessionId,
       });
       setSelectedDeviceId(pair);
       setStreamMode("live");
-      toast.success(`Camera ${pair} paired and registered live!`);
+      toast.success(`Companion camera ${pair} connected live!`);
     }
-  }, [pair, pairDevice, sessionLocation, activeSessionId, setSelectedDeviceId, setStreamMode]);
+  }, [pair, mode, pairDevice, sessionLocation, activeSessionId, setSelectedDeviceId, setStreamMode]);
 
   // Handle ?roll= query parameter
   useEffect(() => {
