@@ -242,12 +242,12 @@ function TopBar({ onOpenCommand }: { onOpenCommand: () => void }) {
   return (
     <header className="sticky top-0 z-30 border-b border-border/80 bg-background/95 backdrop-blur-md print:hidden">
       <div className="flex h-13 items-center justify-between gap-2 px-2.5 sm:px-4">
-        {/* Left: Sidebar trigger, sleek responsive Wordmark & breadcrumbs */}
+        {/* Left: Sidebar trigger, mobile branding & desktop breadcrumbs */}
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <SidebarTrigger className="hidden md:inline-flex h-8 w-8 rounded-lg border border-border/80 bg-surface shadow-[inset_1px_1px_1.5px_rgba(255,255,255,0.08),inset_-1px_-1px_2px_rgba(0,0,0,0.4)]" />
           
-          {/* Mobile compact branding: 100% fits within 360px without crowding */}
-          <div className="flex items-center gap-1.5 shrink-0">
+          {/* Mobile-only branding: visible only when sidebar is hidden on small screens */}
+          <div className="flex items-center gap-1.5 shrink-0 md:hidden">
             <Link to="/" className="flex items-center gap-2 select-none hover:opacity-90 transition-opacity">
               <TensoraMark className="h-7 w-auto" />
               <span className="font-sans text-[13px] font-bold tracking-[0.16em] text-foreground">
@@ -256,10 +256,9 @@ function TopBar({ onOpenCommand }: { onOpenCommand: () => void }) {
             </Link>
           </div>
 
-          {/* Desktop breadcrumbs */}
+          {/* Desktop breadcrumbs: shown on desktop next to sidebar toggle without duplicate logo */}
           <div className="hidden items-center gap-2 text-xs md:flex min-w-0">
-            <span className="text-muted-foreground/30">/</span>
-            <span className="font-medium text-muted-foreground truncate max-w-[150px]">{SITE.name}</span>
+            <span className="font-medium text-muted-foreground truncate max-w-[170px]">{SITE.name}</span>
             <span className="text-muted-foreground/30">/</span>
             <span className="font-mono text-muted-foreground text-[11px]">{SITE.line.replace(/\s*\(.*\)/, "")}</span>
             <span className="text-muted-foreground/30">/</span>
