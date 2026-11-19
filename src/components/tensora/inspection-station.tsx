@@ -85,6 +85,32 @@ function makeKnitTile() {
   return t;
 }
 
+/** Draws source media fitted proportionally onto canvas without aspect-ratio stretching */
+function drawCover(
+  ctx: CanvasRenderingContext2D,
+  img: CanvasImageSource,
+  imgW: number,
+  imgH: number,
+  targetW: number,
+  targetH: number
+) {
+  if (!imgW || !imgH) return;
+  const targetRatio = targetW / targetH;
+  const imgRatio = imgW / imgH;
+  let sx = 0,
+    sy = 0,
+    sw = imgW,
+    sh = imgH;
+  if (imgRatio > targetRatio) {
+    sw = imgH * targetRatio;
+    sx = (imgW - sw) / 2;
+  } else {
+    sh = imgW / targetRatio;
+    sy = (imgH - sh) / 2;
+  }
+  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, targetW, targetH);
+}
+
 function drawArtifact(ctx: CanvasRenderingContext2D, d: Det, W: number) {
   const cx = d.x * W;
   const cy = d.y + d.h / 2;
@@ -697,9 +723,23 @@ export function InspectionStation() {
       const step = isPaused || hasUploaded ? 0 : (speed / 42) * 2.2;
 
       if (hasUploaded && uploadedImageRef.current) {
-        ctx.drawImage(uploadedImageRef.current, 0, 0, W, H);
+        drawCover(
+          ctx,
+          uploadedImageRef.current,
+          uploadedImageRef.current.naturalWidth || uploadedImageRef.current.width || W,
+          uploadedImageRef.current.naturalHeight || uploadedImageRef.current.height || H,
+          W,
+          H
+        );
       } else if (roverActive && pairedRoverFrameRef.current) {
-        ctx.drawImage(pairedRoverFrameRef.current, 0, 0, W, H);
+        drawCover(
+          ctx,
+          pairedRoverFrameRef.current,
+          pairedRoverFrameRef.current.width || W,
+          pairedRoverFrameRef.current.height || H,
+          W,
+          H
+        );
         ctx.save();
         ctx.font = "600 12px 'JetBrains Mono', monospace";
         ctx.fillStyle = "rgba(0,0,0,0.65)";
@@ -709,9 +749,23 @@ export function InspectionStation() {
         ctx.restore();
       } else if (isIpCam) {
         if (sampleVideoRef.current && sampleVideoRef.current.readyState >= 2) {
-          ctx.drawImage(sampleVideoRef.current, 0, 0, W, H);
+          drawCover(
+            ctx,
+            sampleVideoRef.current,
+            sampleVideoRef.current.videoWidth || W,
+            sampleVideoRef.current.videoHeight || H,
+            W,
+            H
+          );
         } else if (cleanKnitImgRef.current) {
-          ctx.drawImage(cleanKnitImgRef.current, 0, 0, W, H);
+          drawCover(
+            ctx,
+            cleanKnitImgRef.current,
+            cleanKnitImgRef.current.naturalWidth || W,
+            cleanKnitImgRef.current.naturalHeight || H,
+            W,
+            H
+          );
         }
         ctx.save();
         ctx.font = "600 12px 'JetBrains Mono', monospace";
@@ -722,11 +776,32 @@ export function InspectionStation() {
         ctx.fillText(`● RTSP/IP: ${selectedDeviceId} [192.168.1.120:554] · ${ts}`, 16, H - 16);
         ctx.restore();
       } else if (live && videoRef.current) {
-        ctx.drawImage(videoRef.current, 0, 0, W, H);
+        drawCover(
+          ctx,
+          videoRef.current,
+          videoRef.current.videoWidth || W,
+          videoRef.current.videoHeight || H,
+          W,
+          H
+        );
       } else if (sampleVideoRef.current && sampleVideoRef.current.readyState >= 2 && simFeedType === "video") {
-        ctx.drawImage(sampleVideoRef.current, 0, 0, W, H);
+        drawCover(
+          ctx,
+          sampleVideoRef.current,
+          sampleVideoRef.current.videoWidth || W,
+          sampleVideoRef.current.videoHeight || H,
+          W,
+          H
+        );
       } else if (cleanKnitImgRef.current && simFeedType === "clean_table") {
-        ctx.drawImage(cleanKnitImgRef.current, 0, 0, W, H);
+        drawCover(
+          ctx,
+          cleanKnitImgRef.current,
+          cleanKnitImgRef.current.naturalWidth || W,
+          cleanKnitImgRef.current.naturalHeight || H,
+          W,
+          H
+        );
       } else {
         offsetRef.current = (offsetRef.current + step) % 10;
         ctx.save();
@@ -883,7 +958,7 @@ export function InspectionStation() {
       <div
         className={cn(
           "scanline relative w-full overflow-hidden rounded-2xl border-2 border-border/80 bg-slate-950 shadow-[0_12px_36px_rgba(0,0,0,0.7)]",
-          isFullscreen ? "h-full flex-1" : "aspect-[16/10] sm:aspect-video"
+          isFullscreen ? "h-full flex-1" : "aspect-[4/3] sm:aspect-video"
         )}
       >
         <canvas ref={canvasRef} width={1280} height={720} className="h-full w-full object-cover" />
@@ -1113,9 +1188,9 @@ export function InspectionStation() {
 
       {/* Secondary Controls Bar: Stream Sources, Presets, and Multi-Camera Fleet */}
       {!isFullscreen && (
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border/80 bg-surface-2/60 p-2 sm:p-2.5 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 rounded-xl border border-border/80 bg-surface-2/60 p-2 sm:p-2.5 shadow-sm max-w-full overflow-hidden">
           {/* Segmented Feed Switcher */}
-          <div className="flex items-center gap-1 rounded-lg border border-border/60 bg-surface p-1 text-xs">
+          <div className="flex flex-wrap items-center gap-1 rounded-lg border border-border/60 bg-surface p-1 text-xs w-full sm:w-auto">
             <button
               type="button"
               onClick={() => {
@@ -1128,7 +1203,7 @@ export function InspectionStation() {
                 toast.success("Switched to Industrial Loom Video (HD)");
               }}
               className={cn(
-                "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md font-mono text-[11px] sm:text-xs transition-all duration-150 cursor-pointer",
+                "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md font-mono text-[11px] sm:text-xs transition-all duration-150 cursor-pointer flex-1 sm:flex-initial justify-center sm:justify-start",
                 !uploadedSample && streamMode === "sim" && simFeedType === "video"
                   ? "bg-primary text-primary-foreground font-semibold shadow-xs"
                   : "text-muted-foreground hover:text-foreground hover:bg-surface-2"
@@ -1149,7 +1224,7 @@ export function InspectionStation() {
                 toast.success("Switched to Clean Light Table");
               }}
               className={cn(
-                "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md font-mono text-[11px] sm:text-xs transition-all duration-150 cursor-pointer",
+                "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md font-mono text-[11px] sm:text-xs transition-all duration-150 cursor-pointer flex-1 sm:flex-initial justify-center sm:justify-start",
                 !uploadedSample && streamMode === "sim" && simFeedType === "clean_table"
                   ? "bg-primary text-primary-foreground font-semibold shadow-xs"
                   : "text-muted-foreground hover:text-foreground hover:bg-surface-2"
@@ -1170,7 +1245,7 @@ export function InspectionStation() {
                 toast.success("Switched to Live Camera Stream");
               }}
               className={cn(
-                "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md font-mono text-[11px] sm:text-xs transition-all duration-150 cursor-pointer",
+                "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md font-mono text-[11px] sm:text-xs transition-all duration-150 cursor-pointer flex-1 sm:flex-initial justify-center sm:justify-start",
                 !uploadedSample && streamMode === "live"
                   ? "bg-primary text-primary-foreground font-semibold shadow-xs"
                   : "text-muted-foreground hover:text-foreground hover:bg-surface-2"
@@ -1183,7 +1258,7 @@ export function InspectionStation() {
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md font-mono text-[11px] sm:text-xs text-muted-foreground hover:text-foreground hover:bg-surface-2 transition-all duration-150 cursor-pointer"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md font-mono text-[11px] sm:text-xs text-muted-foreground hover:text-foreground hover:bg-surface-2 transition-all duration-150 cursor-pointer flex-1 sm:flex-initial justify-center sm:justify-start"
             >
               <Upload className="h-3 w-3" />
               <span className="hidden sm:inline">Upload Image</span>
@@ -1191,17 +1266,17 @@ export function InspectionStation() {
             </button>
           </div>
 
-          {/* Presentation Flaw Presets Popover */}
-          <div className="flex items-center gap-2">
+          {/* Presentation Flaw Presets Popover & Fleet Selector */}
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             <Popover open={presetsOpen} onOpenChange={setPresetsOpen}>
               <PopoverTrigger asChild>
                 <Button
                   size="sm"
                   variant="outline"
-                  className="h-8.5 gap-1.5 text-xs font-mono border-amber-500/40 hover:border-amber-400 bg-amber-500/10 text-amber-300 cursor-pointer"
+                  className="h-8.5 gap-1.5 text-xs font-mono border-amber-500/40 hover:border-amber-400 bg-amber-500/10 text-amber-300 cursor-pointer flex-1 sm:flex-initial"
                 >
                   <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-                  <span>Presets (8 Macro Defects)</span>
+                  <span className="truncate">Presets (8 Defects)</span>
                   <ChevronDown className="h-3 w-3 opacity-60 ml-0.5" />
                 </Button>
               </PopoverTrigger>
@@ -1246,7 +1321,7 @@ export function InspectionStation() {
                   toast.success(`Switched active camera to ${val}`);
                 }}
               >
-                <SelectTrigger className="h-8.5 text-xs font-mono w-[140px] sm:w-[170px] bg-surface">
+                <SelectTrigger className="h-8.5 text-xs font-mono w-full sm:w-[150px] bg-surface flex-1 sm:flex-initial">
                   <SelectValue placeholder="Fleet camera" />
                 </SelectTrigger>
                 <SelectContent align="end">

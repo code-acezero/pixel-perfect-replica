@@ -120,7 +120,7 @@ function CapturePage() {
   }, [queryRoll, setActiveRoll]);
 
   return (
-    <div className="mx-auto max-w-[1600px]">
+    <div className="mx-auto max-w-[1600px] w-full overflow-x-hidden">
       <PageHeader
         module="Tensora Capture"
         title="Optical Inspection Station"

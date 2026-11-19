@@ -790,7 +790,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
         <div className="flex min-w-0 flex-1 flex-col">
           <TopBar onOpenCommand={() => setCommandOpen(true)} />
-          <main className="flex-1 px-3 pb-24 pt-4 sm:px-6 sm:pt-6 md:pb-10 print:p-0 print:m-0">{children}</main>
+          <main className="flex-1 px-3 pb-24 pt-4 sm:px-6 sm:pt-6 md:pb-10 print:p-0 print:m-0 max-w-full overflow-x-hidden">{children}</main>
         </div>
       </div>
       <BottomNav onOpenCommand={() => setCommandOpen(true)} />

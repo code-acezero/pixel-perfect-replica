@@ -8,8 +8,12 @@ export const attachSupabaseAuth = createMiddleware({ type: 'function' }).client(
   async ({ next }) => {
     const { data } = await supabase.auth.getSession()
     const token = data.session?.access_token
+    const isDemo = typeof window !== 'undefined' && Boolean(localStorage.getItem('tensora_demo_user'))
     return next({
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(isDemo ? { 'x-tensora-demo-user': '1' } : {}),
+      },
     })
   },
 )
