@@ -892,18 +892,15 @@ export function InspectionStation() {
 
         {/* Laser Scanner Reticle Overlays */}
         <div className="pointer-events-none absolute inset-0">
-          {/* Top-Left Corner Reticle */}
-          <div className="absolute top-3 left-3 h-5 w-5 sm:h-7 sm:w-7 border-t-2 border-l-2 border-cyan-400/90 rounded-tl shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
-          {/* Top-Right Corner Reticle */}
-          <div className="absolute top-3 right-3 h-5 w-5 sm:h-7 sm:w-7 border-t-2 border-r-2 border-cyan-400/90 rounded-tr shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
-          {/* Bottom-Left Corner Reticle */}
-          <div className="absolute bottom-3 left-3 h-5 w-5 sm:h-7 sm:w-7 border-b-2 border-l-2 border-cyan-400/90 rounded-bl shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
-          {/* Bottom-Right Corner Reticle */}
-          <div className="absolute bottom-3 right-3 h-5 w-5 sm:h-7 sm:w-7 border-b-2 border-r-2 border-cyan-400/90 rounded-br shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
+          {/* Subtle Precision Corner Brackets (1px thin, unobtrusive) */}
+          <div className="absolute top-2.5 left-2.5 h-3.5 w-3.5 sm:h-4 sm:w-4 border-t border-l border-cyan-400/35 rounded-tl-sm" />
+          <div className="absolute top-2.5 right-2.5 h-3.5 w-3.5 sm:h-4 sm:w-4 border-t border-r border-cyan-400/35 rounded-tr-sm" />
+          <div className="absolute bottom-2.5 left-2.5 h-3.5 w-3.5 sm:h-4 sm:w-4 border-b border-l border-cyan-400/35 rounded-bl-sm" />
+          <div className="absolute bottom-2.5 right-2.5 h-3.5 w-3.5 sm:h-4 sm:w-4 border-b border-r border-cyan-400/35 rounded-br-sm" />
 
           {/* Central Optical Alignment Crosshair */}
-          <div className="absolute inset-0 flex items-center justify-center opacity-30">
-            <div className="relative h-6 w-6">
+          <div className="absolute inset-0 flex items-center justify-center opacity-25">
+            <div className="relative h-5 w-5">
               <div className="absolute top-1/2 left-0 right-0 h-px bg-cyan-400" />
               <div className="absolute left-1/2 top-0 bottom-0 w-px bg-cyan-400" />
             </div>
@@ -911,60 +908,58 @@ export function InspectionStation() {
 
           {/* Animated Laser Scan Beam */}
           {!paused && (
-            <div className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_14px_rgba(6,182,212,0.9)] animate-[scan_3.2s_linear_infinite]" />
+            <div className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-cyan-400/80 to-transparent shadow-[0_0_10px_rgba(6,182,212,0.7)] animate-[scan_3.2s_linear_infinite]" />
           )}
         </div>
 
         {/* Clean Top Floating HUD Ribbon */}
-        <div className="absolute inset-x-2 sm:inset-x-4 top-2 sm:top-3 flex items-center justify-between gap-2 z-10">
+        <div className="absolute inset-x-2 sm:inset-x-3 top-2 sm:top-2.5 flex items-center justify-between gap-1.5 z-10 pointer-events-auto">
           {/* Left Status Pill */}
-          <div className="flex items-center gap-2 rounded-full border border-white/15 bg-slate-950/80 px-3 py-1.5 shadow-[inset_1px_1px_2px_rgba(255,255,255,0.1),0_4px_16px_rgba(0,0,0,0.6)] backdrop-blur-md font-mono text-[11px] sm:text-xs">
+          <div className="flex items-center gap-1.5 rounded-full border border-white/15 bg-slate-950/75 px-2.5 py-1 shadow-md backdrop-blur-md font-mono text-[10px] sm:text-[11px]">
             <span
               className={cn(
-                "h-2 w-2 rounded-full shrink-0 shadow-sm",
+                "h-1.5 w-1.5 rounded-full shrink-0",
                 uploadedSample
                   ? "bg-purple-400 animate-pulse"
                   : paused
                   ? "bg-amber-400"
                   : streamMode === "live"
-                  ? "bg-emerald-400 animate-pulse shadow-[0_0_6px_rgba(52,211,153,0.8)]"
-                  : "bg-cyan-400 animate-pulse shadow-[0_0_6px_rgba(6,182,212,0.8)]"
+                  ? "bg-emerald-400 animate-pulse"
+                  : "bg-cyan-400 animate-pulse"
               )}
             />
             <span className="font-semibold uppercase tracking-wider text-white">
               {uploadedSample
                 ? "SAMPLE"
                 : roverActive
-                ? "ROVER (WIRELESS)"
+                ? "ROVER"
                 : isIpCam
-                ? "IP CAM (RTSP)"
+                ? "IP CAM"
                 : paused
                 ? (language === "bn" ? "পজ" : "PAUSED")
                 : streamMode === "live"
                 ? (language === "bn" ? "লাইভ" : "LIVE")
                 : (language === "bn" ? "সিম" : "SIM")}
             </span>
-            <span className="text-white/40">|</span>
+            <span className="text-white/30">|</span>
             <span className="text-cyan-300 font-semibold">{roll.id}</span>
-            <span className="text-white/40 hidden sm:inline">|</span>
-            <span className="text-white/80 hidden sm:inline">{paused ? 0 : speed} m/min</span>
+            <span className="text-white/30 hidden sm:inline">|</span>
+            <span className="text-white/70 hidden sm:inline">{paused ? 0 : speed} m/min</span>
           </div>
 
           {/* Right Live Score & Quick Utility Buttons */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
             {/* Live ASTM Score Pill */}
             <div className={cn(
-              "flex items-center gap-1.5 rounded-full border px-3 py-1.5 backdrop-blur-md font-mono text-[11px] sm:text-xs font-semibold shadow-md",
+              "flex items-center gap-1 rounded-full border px-2.5 py-1 backdrop-blur-md font-mono text-[10px] sm:text-[11px] font-semibold shadow-sm",
               liveScore <= 20
                 ? "border-emerald-500/40 bg-emerald-950/70 text-emerald-300"
                 : "border-amber-500/40 bg-amber-950/70 text-amber-300"
             )}>
               <span>{liveScore.toFixed(1)} pt</span>
-              <span className="text-[9px] uppercase tracking-wider opacity-80 sm:inline hidden">
+              <span className="text-[9px] uppercase tracking-wider opacity-80 hidden sm:inline">
                 {liveScore <= 20 ? "PASS" : "WARN"}
               </span>
-              <span className="text-white/30 hidden md:inline">·</span>
-              <span className="text-[10px] text-white/60 hidden md:inline">{inference}ms</span>
             </div>
 
             {/* Siren Audio Toggle */}
@@ -978,13 +973,13 @@ export function InspectionStation() {
               }}
               title={floorAlarmEnabled ? "Mute siren" : "Enable siren"}
               className={cn(
-                "h-8 w-8 rounded-full border flex items-center justify-center transition-all duration-200 cursor-pointer backdrop-blur-md active:scale-95",
+                "h-7 w-7 rounded-full border flex items-center justify-center transition-all duration-150 cursor-pointer backdrop-blur-md active:scale-95 shadow-sm",
                 floorAlarmEnabled
                   ? "border-emerald-500/50 bg-emerald-950/80 text-emerald-400"
-                  : "border-white/10 bg-slate-950/80 text-white/50 hover:text-white"
+                  : "border-white/10 bg-slate-950/70 text-white/50 hover:text-white"
               )}
             >
-              {floorAlarmEnabled ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+              {floorAlarmEnabled ? <Volume2 className="h-3 w-3" /> : <VolumeX className="h-3 w-3" />}
             </button>
 
             {/* Native Fullscreen Button */}
@@ -992,16 +987,16 @@ export function InspectionStation() {
               type="button"
               onClick={toggleFullScreen}
               title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen Camera Scan"}
-              className="h-8 w-8 rounded-full border border-white/15 bg-slate-950/80 text-white flex items-center justify-center transition-all duration-200 hover:border-cyan-400/60 active:scale-95 cursor-pointer backdrop-blur-md shadow-md"
+              className="h-7 w-7 rounded-full border border-white/15 bg-slate-950/70 text-white/80 hover:text-white flex items-center justify-center transition-all duration-150 hover:border-cyan-400/60 active:scale-95 cursor-pointer backdrop-blur-md shadow-sm"
             >
-              {isFullscreen ? <Minimize2 className="h-3.5 w-3.5 text-cyan-400" /> : <Maximize2 className="h-3.5 w-3.5" />}
+              {isFullscreen ? <Minimize2 className="h-3 w-3 text-cyan-400" /> : <Maximize2 className="h-3 w-3" />}
             </button>
           </div>
         </div>
 
         {/* Continuous Fault Mill Alarm Banner */}
         {continuousAlarm.hasContinuousFault && (
-          <div className="absolute inset-x-2 sm:inset-x-4 top-12 z-20 flex items-center gap-2 rounded-xl border border-major/80 bg-major/30 p-2.5 backdrop-blur-md text-xs font-semibold text-major animate-pulse shadow-xl">
+          <div className="absolute inset-x-2 sm:inset-x-4 top-10 sm:top-11 z-20 flex items-center gap-2 rounded-xl border border-major/80 bg-major/30 p-2 backdrop-blur-md text-xs font-semibold text-major animate-pulse shadow-xl">
             <AlertOctagon className="h-4 w-4 shrink-0" />
             <div className="min-w-0 flex-1 truncate">
               <b>{language === "bn" ? "জরুরি অটোম্যাটিক মিল হোল্ড: " : "AUTOMATIC MILL HOLD: "}</b>
@@ -1012,17 +1007,17 @@ export function InspectionStation() {
 
         {/* Active Uploaded Sample Banner */}
         {uploadedSample && (
-          <div className="absolute inset-x-0 top-12 sm:top-14 flex justify-center z-10 px-2 pointer-events-auto">
-            <div className="flex items-center gap-2 rounded-full border border-purple-500/40 bg-slate-950/90 px-3 py-1 shadow-lg backdrop-blur-md">
-              <span className="font-mono text-[11px] text-purple-300">
+          <div className="absolute inset-x-0 top-10 sm:top-12 flex justify-center z-10 px-2 pointer-events-auto">
+            <div className="flex items-center gap-2 rounded-full border border-purple-500/40 bg-slate-950/90 px-3 py-0.5 shadow-lg backdrop-blur-md">
+              <span className="font-mono text-[10px] text-purple-300">
                 Inspecting: <b>{uploadedSample.name}</b>
               </span>
               <button
                 type="button"
-                className="h-5 px-2 rounded-full bg-white/10 hover:bg-white/20 text-[10px] text-white flex items-center gap-1 font-mono cursor-pointer transition-colors"
+                className="h-4.5 px-1.5 rounded-full bg-white/10 hover:bg-white/20 text-[9px] text-white flex items-center gap-1 font-mono cursor-pointer transition-colors"
                 onClick={clearUploadedSample}
               >
-                <X className="h-3 w-3" /> Resume Live
+                <X className="h-2.5 w-2.5" /> Resume Live
               </button>
             </div>
           </div>
@@ -1032,7 +1027,7 @@ export function InspectionStation() {
         {streamMode === "live" && camError && !uploadedSample && (
           <div className="absolute inset-0 grid place-items-center bg-slate-950/90 p-6 text-center z-10">
             <div className="max-w-xs space-y-2">
-              <VideoOff className="mx-auto h-8 w-8 text-minor" />
+              <VideoOff className="mx-auto h-7 w-7 text-minor" />
               <p className="text-sm font-semibold text-white">Camera unavailable</p>
               <p className="text-xs text-white/60">{camError}. Connect your camera or switch to the simulated stream.</p>
               <Button size="sm" variant="outline" className="mt-2" onClick={() => setStreamMode("sim")}>
@@ -1042,22 +1037,22 @@ export function InspectionStation() {
           </div>
         )}
 
-        {/* Bottom Floating Tactile Camera Control Dock */}
-        <div className="absolute inset-x-0 bottom-3 sm:bottom-4 flex items-center justify-center px-4 z-20 pointer-events-auto">
-          <div className="flex items-center gap-3 sm:gap-4 rounded-full border border-white/15 bg-slate-950/85 px-4 py-2 shadow-[inset_1px_1.5px_2px_rgba(255,255,255,0.12),inset_-2px_-2px_4px_rgba(0,0,0,0.7),0_12px_32px_rgba(0,0,0,0.8)] backdrop-blur-lg">
+        {/* Bottom Floating Sleek Industrial Camera Control Dock */}
+        <div className="absolute inset-x-0 bottom-2.5 sm:bottom-3 flex items-center justify-center px-2 z-20 pointer-events-auto">
+          <div className="flex items-center gap-2 sm:gap-2.5 rounded-full border border-white/15 bg-slate-950/80 px-2.5 py-1 sm:px-3 sm:py-1.5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),0_8px_24px_rgba(0,0,0,0.7)] backdrop-blur-md">
             {/* Flashlight / Torch */}
             <button
               type="button"
               onClick={toggleTorch}
               title="Toggle inspection torch"
               className={cn(
-                "h-10 w-10 sm:h-11 sm:w-11 rounded-full border flex items-center justify-center transition-all duration-200 active:scale-95 cursor-pointer",
+                "h-8 w-8 rounded-full border flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer",
                 torchOn
-                  ? "border-amber-400 bg-amber-400/20 text-amber-300 shadow-[0_0_12px_rgba(251,191,36,0.6)]"
+                  ? "border-amber-400 bg-amber-400/20 text-amber-300 shadow-[0_0_8px_rgba(251,191,36,0.6)]"
                   : "border-white/10 bg-white/5 text-white/70 hover:text-white hover:border-white/20"
               )}
             >
-              {torchOn ? <Flashlight className="h-4 w-4 sm:h-5 sm:w-5" /> : <FlashlightOff className="h-4 w-4 sm:h-5 sm:w-5" />}
+              {torchOn ? <Flashlight className="h-3.5 w-3.5" /> : <FlashlightOff className="h-3.5 w-3.5" />}
             </button>
 
             {/* XAI Heatmap */}
@@ -1069,28 +1064,28 @@ export function InspectionStation() {
               }}
               title="Toggle Explainable AI (XAI) thermal saliency heatmap"
               className={cn(
-                "h-10 w-10 sm:h-11 sm:w-11 rounded-full border flex items-center justify-center transition-all duration-200 active:scale-95 cursor-pointer",
+                "h-8 w-8 rounded-full border flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer",
                 showXaiHeatmap
-                  ? "border-cyan-400 bg-cyan-400/20 text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.6)]"
+                  ? "border-cyan-400 bg-cyan-400/20 text-cyan-300 shadow-[0_0_8px_rgba(6,182,212,0.6)]"
                   : "border-white/10 bg-white/5 text-white/70 hover:text-white hover:border-white/20"
               )}
             >
-              <Flame className="h-4 w-4 sm:h-5 sm:w-5" />
+              <Flame className="h-3.5 w-3.5" />
             </button>
 
-            {/* Center Shutter Button (Play / Pause Inspection) */}
+            {/* Center Shutter Button (Play / Pause Inspection) - Compact & Elegant */}
             <button
               type="button"
               onClick={() => setPaused(!paused)}
               title={paused ? "Resume fabric inspection" : "Pause inspection"}
               className={cn(
-                "h-13 w-13 sm:h-15 sm:w-15 rounded-full border-2 flex items-center justify-center transition-all duration-200 active:scale-90 cursor-pointer shadow-[inset_2px_2px_4px_rgba(255,255,255,0.25),inset_-2px_-2px_4px_rgba(0,0,0,0.7),0_8px_20px_rgba(0,0,0,0.6)]",
+                "h-9 w-9 sm:h-10 sm:w-10 rounded-full border flex items-center justify-center transition-all duration-150 active:scale-90 cursor-pointer shadow-md",
                 paused
-                  ? "border-amber-400/80 bg-amber-500 text-slate-950 hover:bg-amber-400"
-                  : "border-cyan-400/80 bg-gradient-to-tr from-cyan-500 to-emerald-400 text-slate-950 hover:brightness-110 shadow-[0_0_18px_rgba(6,182,212,0.5)]"
+                  ? "border-amber-400/80 bg-amber-500 text-slate-950 hover:bg-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.4)]"
+                  : "border-cyan-400/80 bg-gradient-to-tr from-cyan-500 to-emerald-400 text-slate-950 hover:brightness-110 shadow-[0_0_12px_rgba(6,182,212,0.5)]"
               )}
             >
-              {paused ? <Play className="h-6 w-6 ml-0.5 fill-current" /> : <Pause className="h-6 w-6 fill-current" />}
+              {paused ? <Play className="h-4 w-4 ml-0.5 fill-current" /> : <Pause className="h-4 w-4 fill-current" />}
             </button>
 
             {/* Manual Flaw Log */}
@@ -1098,9 +1093,9 @@ export function InspectionStation() {
               type="button"
               onClick={() => setManualOpen(true)}
               title="Log manual flaw"
-              className="h-10 w-10 sm:h-11 sm:w-11 rounded-full border border-white/10 bg-white/5 text-white/70 hover:text-white hover:border-white/20 flex items-center justify-center transition-all duration-200 active:scale-95 cursor-pointer"
+              className="h-8 w-8 rounded-full border border-white/10 bg-white/5 text-white/70 hover:text-white hover:border-white/20 flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer"
             >
-              <PlusCircle className="h-4 w-4 sm:h-5 sm:w-5" />
+              <PlusCircle className="h-3.5 w-3.5" />
             </button>
 
             {/* Camera Snapshot */}
@@ -1108,9 +1103,9 @@ export function InspectionStation() {
               type="button"
               onClick={snapshot}
               title="Save snapshot frame"
-              className="h-10 w-10 sm:h-11 sm:w-11 rounded-full border border-white/10 bg-white/5 text-white/70 hover:text-white hover:border-white/20 flex items-center justify-center transition-all duration-200 active:scale-95 cursor-pointer"
+              className="h-8 w-8 rounded-full border border-white/10 bg-white/5 text-white/70 hover:text-white hover:border-white/20 flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer"
             >
-              <Camera className="h-4 w-4 sm:h-5 sm:w-5" />
+              <Camera className="h-3.5 w-3.5" />
             </button>
           </div>
         </div>
