@@ -1,7 +1,7 @@
 // Native multi-provider AI Vision and Intelligence server for Tensora
 export const AI_MODEL =
   process.env["AI_MODEL"] ||
-  (process.env["GEMINI_API_KEY"] ? "gemini-2.0-flash" : "gpt-4o-mini");
+  (process.env["GEMINI_API_KEY"] ? "gemini-3.8-flash" : "gpt-4o-mini");
 
 export class AiError extends Error {
   constructor(public status: number, message: string) {
@@ -299,6 +299,68 @@ export async function responsesJSON<T>(opts: {
       } as unknown as T;
     }
     throw new AiError(401, "AI API key is not configured. Set AI_API_KEY or GEMINI_API_KEY in .env.local");
+  }
+
+  // 1. Native Google Gemini API endpoint handling
+  if (process.env["GEMINI_API_KEY"] && !process.env["OPENAI_API_KEY"] && !process.env["AI_GATEWAY_URL"]) {
+    try {
+      const parts: Record<string, unknown>[] = [
+        { text: opts.instructions },
+      ];
+
+      for (const item of opts.content) {
+        if (item["type"] === "input_image" && typeof item["image_url"] === "string") {
+          const match = (item["image_url"] as string).match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
+          if (match) {
+            parts.push({
+              inline_data: {
+                mime_type: match[1],
+                data: match[2],
+              },
+            });
+          }
+        } else if (item["type"] === "input_text" && typeof item["text"] === "string") {
+          parts.push({ text: item["text"] });
+        }
+      }
+
+      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${AI_MODEL}:generateContent?key=${apiKey}`;
+      const res = await fetch(geminiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts }],
+          generationConfig: {
+            responseMimeType: "application/json",
+            responseSchema: opts.schema,
+          },
+        }),
+      });
+
+      if (res.ok) {
+        const json = await res.json() as {
+          candidates?: { content?: { parts?: { text?: string }[] } }[];
+        };
+        const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text) {
+          return JSON.parse(text) as T;
+        }
+      } else {
+        const errJson = await res.json().catch(() => ({}));
+        console.warn("Gemini API error:", res.status, errJson);
+      }
+    } catch (err) {
+      console.warn("Gemini API call failed, falling back to Edge Vision:", err);
+    }
+
+    // Graceful fallback to Edge Vision if remote API is unreachable or rate-limited
+    if (opts.schemaName === "fabric_frame") {
+      const imageItem = opts.content.find(
+        (c) => c["type"] === "input_image" && typeof c["image_url"] === "string"
+      );
+      const imageUrl = (imageItem?.["image_url"] as string) || "";
+      return analyzeEdgeVisionFrame(imageUrl) as unknown as T;
+    }
   }
 
   // Handle standard OpenAI-compatible Chat Completions endpoints
