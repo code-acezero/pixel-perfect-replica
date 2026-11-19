@@ -3,7 +3,6 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Zap, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Wordmark } from "@/components/tensora/brand";
@@ -119,25 +118,7 @@ function AuthPage() {
     setGoogleBusy(true);
     if (target !== "/") sessionStorage.setItem("tensora-after-auth", target);
 
-    // If running inside Lovable editor preview iframe, use broker
-    const isFramed = typeof window !== "undefined" && window.parent !== window;
-    if (isFramed) {
-      try {
-        const res = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-        setGoogleBusy(false);
-        if (res.error) {
-          toast.error(res.error.message ?? "Google sign-in failed");
-          return;
-        }
-        if (res.redirected) return;
-        navigate({ to: target, replace: true });
-        return;
-      } catch (err) {
-        console.warn("Lovable OAuth broker unavailable, proceeding with native Supabase OAuth:", err);
-      }
-    }
-
-    // Direct native Supabase OAuth for localhost, Vercel, and standalone browsers
+    // Direct native Supabase OAuth
     try {
       const redirectUri = `${window.location.origin}/auth`;
       const { data, error } = await supabase.auth.signInWithOAuth({
