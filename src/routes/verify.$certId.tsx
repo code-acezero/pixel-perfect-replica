@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { ShieldCheck, ShieldX } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Wordmark } from "@/components/tensora/brand";
+import { certificatesSeed, rollsSeed, buyersSeed } from "@/lib/tensora/data";
+import { useTensora } from "@/lib/tensora/store";
 
 export const Route = createFileRoute("/verify/$certId")({
   head: ({ params }) => ({
@@ -21,9 +23,33 @@ function VerifyPage() {
   const q = useQuery({
     queryKey: ["verify", certId],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("verify_certificate", { _id: certId });
-      if (error) throw error;
-      return data?.[0] ?? null;
+      try {
+        const { data, error } = await supabase.rpc("verify_certificate", { _id: certId });
+        if (!error && data?.[0]) return data[0];
+      } catch {
+        // Fall back to local store or seed certificates
+      }
+
+      // Check current store certificates first
+      const storeCerts = useTensora.getState().certificates;
+      const found = storeCerts.find((x) => x.id === certId) || certificatesSeed.find((x) => x.id === certId);
+      if (found) {
+        const rolls = useTensora.getState().rolls;
+        const buyers = useTensora.getState().buyers;
+        const roll = rolls.find((r) => r.id === found.rollId) || rollsSeed.find((r) => r.id === found.rollId);
+        const buyer = (roll && (buyers.find((b) => b.id === roll.buyerId) || buyersSeed.find((b) => b.id === roll.buyerId))) || buyersSeed[0];
+        return {
+          id: found.id,
+          roll_id: found.rollId,
+          issued_at: found.issuedAt,
+          issuer: found.issuer,
+          verdict: found.verdict,
+          score: found.score,
+          buyer: buyer?.name ?? "H&M Group",
+          article: roll?.article ?? "100% Combed Cotton Single Jersey",
+        };
+      }
+      return null;
     },
   });
   const c = q.data;

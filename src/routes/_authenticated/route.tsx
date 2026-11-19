@@ -6,18 +6,44 @@ import { CloudSync } from "@/components/tensora/cloud-sync";
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   beforeLoad: async ({ location }) => {
-    // Offline: trust the session saved on this device; the server re-checks every write on sync.
-    const user = navigator.onLine
-      ? (await supabase.auth.getUser()).data.user
-      : (await supabase.auth.getSession()).data.session?.user;
-    const data = { user };
-    if (!data.user) {
-      if (typeof window !== "undefined" && localStorage.getItem("tensora_demo_user")) {
-        return { userId: "demo-inspector-lead" };
-      }
-      throw redirect({ to: "/auth", search: { redirect: location.href } });
+    // 1. Instant 1-Click Demo session check (0ms, no network)
+    if (typeof window !== "undefined" && localStorage.getItem("tensora_demo_user")) {
+      return { userId: "demo-inspector-lead" };
     }
-    return { userId: data.user.id };
+
+    // 2. Trust local session first (reads from localStorage without hanging)
+    let localUserId: string | null = null;
+    try {
+      const { data } = await supabase.auth.getSession();
+      if (data?.session?.user?.id) {
+        localUserId = data.session.user.id;
+      }
+    } catch {
+      // Local storage read error; continue
+    }
+
+    if (localUserId) {
+      return { userId: localUserId };
+    }
+
+    // 3. If online, attempt a fast remote getUser() with a strict timeout to prevent page freezes
+    let remoteUserId: string | null = null;
+    if (typeof navigator !== "undefined" && navigator.onLine) {
+      try {
+        const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500));
+        const userPromise = supabase.auth.getUser().then((res) => res.data?.user?.id ?? null).catch(() => null);
+        remoteUserId = await Promise.race([userPromise, timeoutPromise]);
+      } catch {
+        remoteUserId = null;
+      }
+    }
+
+    if (remoteUserId) {
+      return { userId: remoteUserId };
+    }
+
+    // 4. Not authenticated: redirect to auth
+    throw redirect({ to: "/auth", search: { redirect: location.href } });
   },
   component: AuthedLayout,
 });

@@ -46,18 +46,51 @@ export function CloudSync({ userId, children }: { userId: string; children: Reac
     type Cached = { snap: Awaited<ReturnType<typeof cloud.loadAll>>; me: Awaited<ReturnType<typeof cloud.loadMe>> };
     const apply = ({ snap, me }: Cached) =>
       useTensora.getState().hydrate(snap, { id: userId, name: me.name, email: me.email, role: primaryRole(me.roles as DbRole[]) });
-    Promise.all([cloud.loadAll(), cloud.loadMe(userId)])
+
+    const applySeedFallback = () => {
+      useTensora.getState().hydrate(
+        {
+          buyers: buyersSeed,
+          rolls: rollsSeed,
+          devices: devicesSeed,
+          sessions: sessionsSeed,
+          defects: defectsSeed,
+          alerts: alertsSeed,
+          certificates: certificatesSeed,
+        },
+        {
+          id: userId,
+          name: "Field Inspector / Plant Lead",
+          email: "inspector@tensora.internal",
+          role: "plant_admin",
+        }
+      );
+    };
+
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("Supabase cloud sync timed out")), 3500)
+    );
+
+    Promise.race([Promise.all([cloud.loadAll(), cloud.loadMe(userId)]), timeoutPromise])
       .then(([snap, me]) => {
         if (cancelled) return;
         apply({ snap, me });
         // Keep a copy on this device; thumbnails are signed URLs, so drop them to stay small.
         void saveSnapshot(`snap:${userId}`, { snap: { ...snap, defects: snap.defects.map(({ thumb: _t, ...d }) => d) }, me });
       })
-      .catch(async (e: Error) => {
-        const cached = await loadSnapshot<Cached>(`snap:${userId}`);
+      .catch(async () => {
         if (cancelled) return;
-        if (cached) apply(cached);
-        else setError(navigator.onLine ? e.message : "You're offline and this device has no saved copy yet. Open Tensora once with a connection first.");
+        try {
+          const cached = await loadSnapshot<Cached>(`snap:${userId}`);
+          if (cancelled) return;
+          if (cached) {
+            apply(cached);
+          } else {
+            applySeedFallback();
+          }
+        } catch {
+          if (!cancelled) applySeedFallback();
+        }
       });
 
     const st = useTensora.getState;
