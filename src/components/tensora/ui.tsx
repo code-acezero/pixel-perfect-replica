@@ -74,7 +74,7 @@ export function Stat({
     telemetry: "text-telemetry",
   }[tone];
   return (
-    <div className="panel p-4 transition-all duration-350 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_12px_28px_-6px_rgba(0,0,0,0.5),0_0_16px_-4px_rgba(6,182,212,0.2)]">
+    <div className="panel p-4 transition-all duration-300 ease-[cubic-bezier(0.18,0.9,0.28,1)] hover:-translate-y-1 hover:border-primary/50 hover:shadow-[inset_1px_1.5px_2px_rgba(255,255,255,0.1),inset_-2px_-2px_4px_rgba(0,0,0,0.5),0_12px_28px_-6px_rgba(0,0,0,0.75)]">
       <div className="flex items-center justify-between">
         <span className="label-caps">{label}</span>
         {Icon && <Icon className="h-4 w-4 text-muted-foreground transition-transform duration-300 group-hover:scale-110" />}
@@ -93,8 +93,8 @@ export function SeverityBadge({ points }: { points: number }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5 font-mono text-[11px] font-semibold transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 active:scale-95",
-        major ? "border-major/40 bg-major/10 text-major" : "border-minor/40 bg-minor/10 text-minor",
+        "inline-flex items-center gap-1 rounded-md border px-2 py-0.5 font-mono text-[11px] font-semibold select-none shadow-[inset_1px_1px_1px_rgba(255,255,255,0.1),1px_1.5px_0px_rgba(0,0,0,0.7)] transition-all duration-200 ease-[cubic-bezier(0.18,0.9,0.28,1)] hover:-translate-y-0.5 active:scale-95",
+        major ? "border-major/80 bg-major/20 text-major" : "border-minor/80 bg-minor/20 text-minor",
       )}
     >
       {points} PT
@@ -113,15 +113,15 @@ export function Tag({
 }) {
   const cls = {
     default: "border-border bg-secondary text-secondary-foreground",
-    pass: "border-pass/40 bg-pass/10 text-pass",
-    minor: "border-minor/40 bg-minor/10 text-minor",
-    major: "border-major/40 bg-major/10 text-major",
-    telemetry: "border-telemetry/40 bg-telemetry/10 text-telemetry",
+    pass: "border-pass/80 bg-pass/20 text-pass",
+    minor: "border-minor/80 bg-minor/20 text-minor",
+    major: "border-major/80 bg-major/20 text-major",
+    telemetry: "border-telemetry/80 bg-telemetry/20 text-telemetry",
   }[tone];
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 whitespace-nowrap rounded-sm border px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 active:scale-95",
+        "inline-flex items-center gap-1 whitespace-nowrap rounded-md border px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider select-none shadow-[inset_1px_1px_1px_rgba(255,255,255,0.08),1px_1px_0px_rgba(0,0,0,0.6)] transition-all duration-200 ease-[cubic-bezier(0.18,0.9,0.28,1)] hover:-translate-y-0.5 active:scale-95",
         cls,
         className,
       )}
@@ -135,9 +135,9 @@ export function VerdictBadge({ pass, large = false }: { pass: boolean; large?: b
   return (
     <div
       className={cn(
-        "rounded-md border font-mono font-bold tracking-wide transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.01]",
-        large ? "px-4 py-3 text-sm shadow-md" : "px-2 py-1 text-[11px]",
-        pass ? "border-pass/50 bg-pass/15 text-pass shadow-[0_0_15px_-3px_rgba(16,185,129,0.25)]" : "pulse-major border-major/60 bg-major/15 text-major shadow-[0_0_20px_-2px_rgba(239,68,68,0.35)]",
+        "rounded-xl border-2 font-mono font-bold tracking-wide transition-all duration-250 ease-[cubic-bezier(0.18,0.9,0.28,1)] shadow-[inset_1px_1px_2px_rgba(255,255,255,0.12),inset_-2px_-2px_4px_rgba(0,0,0,0.4),0_4px_12px_rgba(0,0,0,0.5)]",
+        large ? "px-4 py-3 text-sm" : "px-2 py-1 text-[11px]",
+        pass ? "border-pass/80 bg-pass/20 text-pass" : "pulse-major border-major/80 bg-major/20 text-major",
       )}
     >
       {pass ? "STATUS: PASS (Export Ready)" : "STATUS: REJECT (Penalty Threshold Exceeded)"}

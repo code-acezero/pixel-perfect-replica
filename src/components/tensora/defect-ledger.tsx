@@ -35,11 +35,11 @@ function Thumb({ d, onClick }: { d: Defect; onClick?: () => void }) {
     <button
       type="button"
       onClick={onClick}
-      className="group relative h-12 w-16 shrink-0 overflow-hidden rounded-md border border-border/80 bg-surface-2 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-telemetry hover:scale-105 active:scale-95 hover:shadow-[0_4px_16px_-2px_rgba(6,182,212,0.35)] focus:outline-none cursor-pointer"
+      className="group relative h-12 w-16 shrink-0 overflow-hidden rounded-lg border border-border/80 bg-surface-2 shadow-[inset_1px_1px_2px_rgba(255,255,255,0.08),inset_-1px_-1px_2px_rgba(0,0,0,0.5),1px_1.5px_0px_rgba(0,0,0,0.8)] transition-all duration-200 ease-[cubic-bezier(0.18,0.9,0.28,1)] hover:border-telemetry hover:-translate-y-0.5 active:scale-95 focus:outline-none cursor-pointer"
       title="Click to inspect defect in high resolution"
     >
       {d.thumb ? (
-        <img src={d.thumb} alt={`${d.cls} crop`} className="h-full w-full object-cover transition-transform duration-350 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110" />
+        <img src={d.thumb} alt={`${d.cls} crop`} className="h-full w-full object-cover transition-transform duration-250 ease-[cubic-bezier(0.18,0.9,0.28,1)] group-hover:scale-105" />
       ) : (
         <div className="relative h-full w-full tech-grid">
           <div
@@ -189,7 +189,7 @@ function DefectInspectorModal({ defect, allDefects, onClose, onSelect }: DefectI
 
   return (
     <Dialog open={!!defect} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="max-w-4xl p-0 overflow-hidden bg-surface/95 border-border/80 text-foreground backdrop-blur-2xl shadow-[0_24px_50px_-12px_rgba(0,0,0,0.7),0_0_25px_-5px_rgba(6,182,212,0.2)]">
+      <DialogContent className="max-w-4xl p-0 overflow-hidden bg-surface border-2 border-border text-foreground shadow-[inset_1.5px_1.5px_2px_rgba(255,255,255,0.08),inset_-2.5px_-2.5px_5px_rgba(0,0,0,0.5),0_24px_48px_-12px_rgba(0,0,0,0.85)] sm:rounded-2xl">
         <DialogHeader className="border-b border-border px-6 py-4">
           <div className="flex flex-wrap items-center justify-between gap-3 pr-8">
             <div className="flex items-center gap-2.5">
@@ -510,7 +510,7 @@ export function DefectLedger({
       {/* Mobile cards */}
       <div className="space-y-2.5 md:hidden">
         {defects.map((d) => (
-          <div key={d.id} className={cn("liquid-card rounded-xl border border-border/70 bg-surface-2/90 backdrop-blur-md p-3.5 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1 hover:shadow-[0_12px_28px_-6px_rgba(0,0,0,0.5),0_0_16px_-4px_rgba(6,182,212,0.2)]", d.status === "dismissed" && "opacity-50")}>
+          <div key={d.id} className={cn("clay-card p-3.5", d.status === "dismissed" && "opacity-50")}>
             <div className="flex gap-3">
               <Thumb d={d} onClick={() => handleOpenInspector(d)} />
               <div className="min-w-0 flex-1">

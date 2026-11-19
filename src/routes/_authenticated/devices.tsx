@@ -195,9 +195,9 @@ function DevicesPage() {
           const Icon = ICON[d.kind];
           const roleInfo = ROLE_BADGE[d.streamRole || "overhead_main"];
           return (
-            <Panel key={d.id} className="relative overflow-hidden hover:-translate-y-1 hover:shadow-[0_16px_36px_-8px_rgba(0,0,0,0.55),0_0_24px_-4px_rgba(6,182,212,0.25)] hover:border-primary/40 transition-all duration-350 ease-[cubic-bezier(0.16,1,0.3,1)]">
+            <Panel key={d.id} className="relative overflow-hidden hover:-translate-y-1 hover:border-primary/50 hover:shadow-[inset_1px_1.5px_2px_rgba(255,255,255,0.1),inset_-2px_-2px_4px_rgba(0,0,0,0.5),0_14px_30px_-6px_rgba(0,0,0,0.75)] transition-all duration-300 ease-[cubic-bezier(0.18,0.9,0.28,1)]">
               <div className="flex items-start gap-3">
-                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-border/80 bg-surface-2 transition-transform duration-300 group-hover:scale-105">
+                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-border/80 bg-surface-2 shadow-[inset_1px_1px_2px_rgba(255,255,255,0.08),inset_-1px_-1px_2px_rgba(0,0,0,0.4)]">
                   <Icon className="h-5 w-5 text-telemetry" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -216,7 +216,7 @@ function DevicesPage() {
                 </button>
               </div>
 
-              <dl className="mt-4 grid grid-cols-4 gap-2 font-mono text-xs border-y border-border/50 py-2.5">
+              <dl className="mt-4 grid grid-cols-4 gap-2 font-mono text-xs border border-border/60 py-2.5 px-2 bg-surface-2/40 rounded-lg shadow-[inset_1.5px_1.5px_3px_rgba(0,0,0,0.5)]">
                 <div>
                   <dt className="label-caps text-[9px]">Resolution</dt>
                   <dd className="mt-0.5 font-medium">{d.resolution}</dd>
@@ -246,8 +246,10 @@ function DevicesPage() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => handleToggleTorch(d)}
-                    className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-mono text-[10px] transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 active:scale-95 cursor-pointer ${
-                      d.torchOn ? "bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-[0_0_10px_rgba(245,158,11,0.25)]" : "bg-surface-2 hover:bg-surface-3 text-muted-foreground"
+                    className={`inline-flex items-center gap-1 rounded-lg px-2 py-0.5 font-mono text-[10px] transition-all duration-200 ease-[cubic-bezier(0.18,0.9,0.28,1)] hover:-translate-y-0.5 active:scale-95 cursor-pointer ${
+                      d.torchOn
+                        ? "bg-amber-500/25 text-amber-300 border border-amber-500/60 shadow-[inset_1px_1px_1.5px_rgba(255,255,255,0.2),inset_-1px_-1px_2px_rgba(0,0,0,0.5)]"
+                        : "bg-surface-2 border border-border text-muted-foreground shadow-[inset_1px_1px_1.5px_rgba(255,255,255,0.08),inset_-1px_-1px_2px_rgba(0,0,0,0.4)]"
                     }`}
                     title="Toggle hardware inspection flashlight"
                   >
@@ -257,10 +259,10 @@ function DevicesPage() {
 
                   <button
                     onClick={() => handleCalibrate(d)}
-                    className={`rounded px-1.5 py-0.5 font-mono text-[10px] border transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 active:scale-95 cursor-pointer ${
+                    className={`rounded-lg px-2 py-0.5 font-mono text-[10px] border transition-all duration-200 ease-[cubic-bezier(0.18,0.9,0.28,1)] hover:-translate-y-0.5 active:scale-95 cursor-pointer ${
                       d.calibrated
-                        ? "border-pass/30 bg-pass/10 text-pass shadow-[0_0_8px_rgba(16,185,129,0.2)]"
-                        : "border-minor/40 bg-minor/10 text-minor hover:bg-minor/20"
+                        ? "border-pass/80 bg-pass/20 text-pass shadow-[inset_1px_1px_1.5px_rgba(255,255,255,0.15),inset_-1px_-1px_2px_rgba(0,0,0,0.4)]"
+                        : "border-minor/80 bg-minor/20 text-minor shadow-[inset_1px_1px_1.5px_rgba(255,255,255,0.15),inset_-1px_-1px_2px_rgba(0,0,0,0.4)]"
                     }`}
                   >
                     {d.calibrated ? "Calibrated" : "Calibrate"}

@@ -120,12 +120,12 @@ function AlertsBell() {
     <Popover>
       <PopoverTrigger asChild>
         <button
-          className="relative grid h-8 w-8 shrink-0 place-items-center rounded-full border border-border/80 bg-surface-2/60 hover:bg-surface-2 text-muted-foreground hover:text-foreground hover:-translate-y-0.5 hover:shadow-[0_4px_14px_-2px_rgba(6,182,212,0.2)] active:scale-95 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer"
+          className="relative grid h-8 w-8 shrink-0 place-items-center rounded-full border border-border/80 bg-surface-2 text-muted-foreground hover:text-foreground shadow-[inset_1px_1px_1.5px_rgba(255,255,255,0.08),inset_-1px_-1.5px_2px_rgba(0,0,0,0.4),0_2px_5px_rgba(0,0,0,0.5)] hover:border-primary/40 hover:-translate-y-0.5 active:scale-95 transition-all duration-200 ease-[cubic-bezier(0.18,0.9,0.28,1)] cursor-pointer"
           aria-label="Alerts"
         >
           <Bell className="h-3.5 w-3.5" />
           {majors > 0 && (
-            <span className="absolute -right-0.5 -top-0.5 grid h-3.5 min-w-3.5 place-items-center rounded-full bg-major px-0.5 font-mono text-[8px] font-bold text-destructive-foreground">
+            <span className="absolute -right-0.5 -top-0.5 grid h-3.5 min-w-3.5 place-items-center rounded-full bg-major px-0.5 font-mono text-[8px] font-bold text-destructive-foreground shadow-[1px_1px_0px_rgba(0,0,0,0.8)]">
               {majors}
             </span>
           )}
@@ -167,10 +167,10 @@ function UserMenu() {
     <Popover>
       <PopoverTrigger asChild>
         <button
-          className="flex h-8 items-center gap-1.5 rounded-full border border-border/80 bg-surface-2/60 pl-1 pr-2 text-xs hover:bg-surface-2 hover:-translate-y-0.5 hover:shadow-[0_4px_16px_-2px_rgba(6,182,212,0.2)] active:scale-95 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer"
+          className="flex h-8 items-center gap-1.5 rounded-full border border-border/80 bg-surface-2 pl-1 pr-2.5 text-xs shadow-[inset_1px_1px_1.5px_rgba(255,255,255,0.08),inset_-1px_-1.5px_2px_rgba(0,0,0,0.4),0_2px_5px_rgba(0,0,0,0.5)] hover:border-primary/40 hover:-translate-y-0.5 active:scale-95 transition-all duration-200 ease-[cubic-bezier(0.18,0.9,0.28,1)] cursor-pointer"
           aria-label="Account"
         >
-          <span className="grid h-6 w-6 place-items-center rounded-full bg-primary/20 font-mono text-[10px] font-bold text-primary">
+          <span className="grid h-6 w-6 place-items-center rounded-full bg-primary/20 font-mono text-[10px] font-bold text-primary border border-primary/40">
             {me.name.slice(0, 2).toUpperCase()}
           </span>
           <span className="hidden xl:inline max-w-[84px] truncate text-xs font-medium text-foreground">
@@ -195,11 +195,11 @@ function TopBar({ onOpenCommand }: { onOpenCommand: () => void }) {
   const { streamMode, setStreamMode, activeRollId, rolls, language, setLanguage } = useTensora();
   const roll = rolls.find((r) => r.id === activeRollId) ?? rolls[0] ?? { id: activeRollId, article: "100% Combed Cotton Single Jersey", gsm: 180 };
   return (
-    <header className="sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur print:hidden">
+    <header className="sticky top-0 z-30 border-b border-border bg-background/95 print:hidden">
       <div className="flex h-13 items-center justify-between gap-3 px-3 sm:px-4">
         {/* Left: Sidebar trigger & compact breadcrumb context */}
         <div className="flex items-center gap-3 min-w-0">
-          <SidebarTrigger className="hidden md:inline-flex h-8 w-8" />
+          <SidebarTrigger className="hidden md:inline-flex h-8 w-8 rounded-lg border border-border/80 bg-surface shadow-[inset_1px_1px_1.5px_rgba(255,255,255,0.08),inset_-1px_-1px_2px_rgba(0,0,0,0.4)]" />
           <div className="md:hidden">
             <Wordmark />
           </div>
@@ -211,7 +211,7 @@ function TopBar({ onOpenCommand }: { onOpenCommand: () => void }) {
             <Link
               to="/trace/$rollId"
               params={{ rollId: roll.id }}
-              className="inline-flex h-8 items-center rounded-full border border-primary/30 bg-primary/10 px-3 font-mono text-xs font-semibold text-primary hover:bg-primary/20 hover:-translate-y-0.5 hover:shadow-[0_4px_14px_-2px_rgba(6,182,212,0.3)] active:scale-95 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] shrink-0"
+              className="inline-flex h-8 items-center rounded-full border border-primary/40 bg-surface px-3 font-mono text-xs font-semibold text-primary shadow-[inset_1px_1px_1.5px_rgba(255,255,255,0.1),inset_-1px_-1.5px_2px_rgba(0,0,0,0.4),0_2px_5px_rgba(0,0,0,0.5)] hover:bg-surface-2 hover:-translate-y-0.5 active:scale-95 transition-all duration-200 ease-[cubic-bezier(0.18,0.9,0.28,1)] shrink-0"
               title={`Active roll: ${roll.id} · ${roll.article}`}
             >
               <span>Roll #{roll.id}</span>
@@ -229,7 +229,7 @@ function TopBar({ onOpenCommand }: { onOpenCommand: () => void }) {
               setLanguage(next);
               toast(next === "bn" ? "বাংলা মোড সক্রিয় (Bengali Mill Operator Mode)" : "Switched to English");
             }}
-            className="flex h-8 items-center gap-1.5 rounded-full border border-border/80 bg-surface-2/60 px-2.5 text-xs font-mono font-medium text-muted-foreground hover:text-foreground hover:bg-surface-2 hover:-translate-y-0.5 hover:shadow-[0_4px_14px_-2px_rgba(6,182,212,0.2)] active:scale-95 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer"
+            className="flex h-8 items-center gap-1.5 rounded-full border border-border/80 bg-surface-2 px-2.5 text-xs font-mono font-medium text-muted-foreground hover:text-foreground shadow-[inset_1px_1px_1.5px_rgba(255,255,255,0.08),inset_-1px_-1.5px_2px_rgba(0,0,0,0.4),0_2px_5px_rgba(0,0,0,0.5)] hover:border-primary/40 hover:-translate-y-0.5 active:scale-95 transition-all duration-200 ease-[cubic-bezier(0.18,0.9,0.28,1)] cursor-pointer"
             title="Toggle Language / ভাষা পরিবর্তন (English / বাংলা)"
           >
             <Languages className="h-3.5 w-3.5 text-telemetry" />
@@ -237,12 +237,12 @@ function TopBar({ onOpenCommand }: { onOpenCommand: () => void }) {
           </button>
           <button
             onClick={onOpenCommand}
-            className="flex h-8 items-center gap-2 rounded-full border border-border/80 bg-surface-2/60 px-3 text-xs text-muted-foreground hover:bg-surface-2 hover:text-foreground hover:-translate-y-0.5 hover:shadow-[0_4px_14px_-2px_rgba(6,182,212,0.2)] active:scale-95 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer"
+            className="flex h-8 items-center gap-2 rounded-full border border-border/80 bg-surface-2 px-3 text-xs text-muted-foreground hover:text-foreground shadow-[inset_1.5px_1.5px_3px_rgba(0,0,0,0.6),inset_-1px_-1px_2px_rgba(255,255,255,0.04)] hover:border-primary/40 hover:-translate-y-0.5 active:scale-95 transition-all duration-200 ease-[cubic-bezier(0.18,0.9,0.28,1)] cursor-pointer"
             title="Global Command Palette (Ctrl+K or ⌘K)"
           >
             <Search className="h-3.5 w-3.5" />
             <span className="hidden sm:inline text-xs">Search...</span>
-            <kbd className="hidden sm:inline-flex h-4 items-center rounded border border-border/80 px-1 font-mono text-[9px] text-muted-foreground/80">⌘K</kbd>
+            <kbd className="hidden sm:inline-flex h-4 items-center rounded border border-border px-1 font-mono text-[9px] text-muted-foreground/80 shadow-[1px_1px_0px_rgba(0,0,0,0.8)]">⌘K</kbd>
           </button>
           <button
             type="button"
@@ -252,10 +252,10 @@ function TopBar({ onOpenCommand }: { onOpenCommand: () => void }) {
               toast(`Stream switched to ${next === "live" ? "Live Camera" : "Simulated Feed"}`);
             }}
             className={cn(
-              "flex h-8 items-center rounded-full border px-3 text-xs font-mono font-medium hover:-translate-y-0.5 active:scale-95 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer",
+              "flex h-8 items-center rounded-full border px-3 text-xs font-mono font-medium hover:-translate-y-0.5 active:scale-95 transition-all duration-200 ease-[cubic-bezier(0.18,0.9,0.28,1)] cursor-pointer",
               streamMode === "live"
-                ? "border-telemetry/50 bg-telemetry/10 text-telemetry shadow-[0_0_12px_rgba(56,189,248,0.25)]"
-                : "border-border/80 bg-surface-2/60 text-muted-foreground hover:text-foreground hover:bg-surface-2 hover:shadow-[0_4px_14px_-2px_rgba(6,182,212,0.2)]"
+                ? "border-primary/80 bg-primary/15 text-primary shadow-[inset_1px_1px_2px_rgba(255,255,255,0.15),inset_-1.5px_-1.5px_3px_rgba(0,0,0,0.5),0_2px_6px_rgba(6,182,212,0.3)]"
+                : "border-border/80 bg-surface-2 text-muted-foreground hover:text-foreground shadow-[inset_1px_1px_1.5px_rgba(255,255,255,0.08),inset_-1px_-1.5px_2px_rgba(0,0,0,0.4),0_2px_5px_rgba(0,0,0,0.5)]"
             )}
             title={`Current: ${streamMode === "live" ? "Live Camera Feed" : "Simulated Factory Stream"}. Click to toggle.`}
           >

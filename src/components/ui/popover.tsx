@@ -19,7 +19,7 @@ const PopoverContent = React.forwardRef<
       align={align}
       sideOffset={sideOffset}
       className={cn(
-        "z-50 w-72 rounded-xl border border-border/80 bg-popover/95 backdrop-blur-xl p-4 text-popover-foreground shadow-[0_20px_45px_-10px_rgba(0,0,0,0.65),0_0_20px_-4px_rgba(6,182,212,0.15)] outline-none duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-(--radix-popover-content-transform-origin)",
+        "z-50 w-72 rounded-2xl border-2 border-border bg-popover p-4 text-popover-foreground shadow-[inset_1px_1.5px_2px_rgba(255,255,255,0.08),inset_-2px_-2px_4px_rgba(0,0,0,0.5),0_18px_36px_-8px_rgba(0,0,0,0.85)] outline-none duration-250 ease-[cubic-bezier(0.18,0.9,0.28,1)] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-(--radix-popover-content-transform-origin)",
         className,
       )}
       {...props}
