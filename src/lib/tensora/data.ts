@@ -156,8 +156,8 @@ export const DEFECT_TRANSLATIONS_BN: Record<DefectClass, { bn: string; desc: str
   "Drop Stitch": { bn: "ড্রপ স্টিচ (Drop Stitch)", desc: "লুপ ছুটে গিয়ে সৃষ্ট ফাঁক" },
   "Slub": { bn: "মোটা সুতা / স্ল্যাব (Slub)", desc: "সুতার মাঝে অতিরিক্ত মোটা বা অনিয়মিত অংশ" },
   "Barre": { bn: "টানা দাগ / বারে (Barre)", desc: "সুতার টেনশন বা ভিন্ন লটের কারণে রঙের আড়াআড়ি দাগ" },
-  "Fly Yarn": { bn: "উড়ন্ত সুতা (Fly Yarn)", desc: "বাতাসের আলগা ফাইবার কাপড়ে আটকে যাওয়া" },
   "Warp Float": { bn: "সুতার ফ্লোট (Warp Float)", desc: "ইন্টারলেস ছাড়া সুতার অনিচ্ছাকৃত ভাসমানতা" },
+  "Lycra Out": { bn: "লাইক্রা আউট / স্প্যানডেক্স মিসিং (Lycra Out)", desc: "ইলাস্টিক ফাইবার বা লাইক্রা মিস হয়ে কাপড়ে টান নষ্ট হওয়া" },
 };
 
 export const BD_SHIFTS_BN: Record<string, string> = {

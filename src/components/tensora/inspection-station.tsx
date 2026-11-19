@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   AlertOctagon,
   Camera,
@@ -7,6 +7,7 @@ import {
   Flame,
   Flashlight,
   FlashlightOff,
+  ImageUp,
   Layers,
   Maximize2,
   Minimize2,
@@ -14,9 +15,13 @@ import {
   Play,
   PlusCircle,
   Radio,
+  ScanLine,
+  Smartphone,
   Sparkles,
   Square,
+  SunMedium,
   Upload,
+  Video,
   VideoOff,
   Volume2,
   VolumeX,
@@ -193,19 +198,13 @@ const FALLBACK_ROLL: Roll = {
   id: "TX-8829",
   buyerId: "BUY-001",
   article: "100% Combed Cotton Single Jersey",
-  color: "Optical White",
+  gsm: 180,
   lot: "LOT-2026-041",
   machineNo: "Circular Knit #04",
   shift: "A",
-  speedMPerMin: 42,
   widthIn: 64,
   cuttableWidthIn: 63,
   lengthM: 142.5,
-  weightKg: 28.4,
-  points100SqYd: 12.8,
-  grade: "PASS",
-  inspectedAt: Date.now() - 3600000,
-  inspector: "Tariqul Islam",
   yarnLot: "YL-30S-0001",
   supplier: "Square Yarns Ltd",
   site: "ASH-U03",
@@ -277,6 +276,38 @@ export function InspectionStation() {
   const roll = rolls.find((r) => r.id === activeRollId) ?? rolls[0] ?? FALLBACK_ROLL;
   const rollDefects = defects.filter((d) => d.rollId === activeRollId);
   const continuousAlarm = checkContinuousFault(rollDefects);
+
+  // Auto-hide HUD and camera control dock after 3.2s of user inactivity
+  const [controlsVisible, setControlsVisible] = useState(true);
+  const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const showControls = useCallback(() => {
+    setControlsVisible(true);
+    if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    // Keep visible if paused or manual logging dialog is open
+    if (!paused && !manualOpen) {
+      hideTimerRef.current = setTimeout(() => {
+        setControlsVisible(false);
+      }, 3200);
+    }
+  }, [paused, manualOpen]);
+
+  const resetHideTimer = showControls;
+
+  useEffect(() => {
+    if (paused || manualOpen) {
+      setControlsVisible(true);
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    } else {
+      showControls();
+    }
+  }, [paused, manualOpen, showControls]);
+
+  useEffect(() => {
+    return () => {
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    };
+  }, []);
 
   const pairedRoverFrameRef = useRef<HTMLImageElement | null>(null);
   const [roverActive, setRoverActive] = useState(false);
@@ -956,8 +987,11 @@ export function InspectionStation() {
 
       {/* Main Viewfinder Frame */}
       <div
+        onMouseMove={showControls}
+        onTouchStart={showControls}
+        onClick={showControls}
         className={cn(
-          "scanline relative w-full overflow-hidden rounded-2xl border-2 border-border/80 bg-slate-950 shadow-[0_12px_36px_rgba(0,0,0,0.7)]",
+          "scanline relative w-full overflow-hidden rounded-2xl border-2 border-border/80 bg-slate-950 shadow-[0_12px_36px_rgba(0,0,0,0.7)] group select-none cursor-pointer",
           isFullscreen ? "h-full flex-1" : "aspect-[4/3] sm:aspect-video"
         )}
       >
@@ -987,8 +1021,15 @@ export function InspectionStation() {
           )}
         </div>
 
-        {/* Clean Top Floating HUD Ribbon */}
-        <div className="absolute inset-x-2 sm:inset-x-3 top-2 sm:top-2.5 flex items-center justify-between gap-1.5 z-10 pointer-events-auto">
+        {/* Clean Top Floating HUD Ribbon (Auto-Hides with Controls) */}
+        <div
+          className={cn(
+            "absolute inset-x-2 sm:inset-x-3 top-2 sm:top-2.5 flex items-center justify-between gap-1.5 z-10 transition-all duration-300 ease-out",
+            controlsVisible
+              ? "opacity-100 translate-y-0 pointer-events-auto"
+              : "opacity-0 -translate-y-2 pointer-events-none"
+          )}
+        >
           {/* Left Status Pill */}
           <div className="flex items-center gap-1.5 rounded-full border border-white/15 bg-slate-950/75 px-2.5 py-1 shadow-md backdrop-blur-md font-mono text-[10px] sm:text-[11px]">
             <span
@@ -1112,18 +1153,29 @@ export function InspectionStation() {
           </div>
         )}
 
-        {/* Bottom Floating Sleek Industrial Camera Control Dock */}
-        <div className="absolute inset-x-0 bottom-2.5 sm:bottom-3 flex items-center justify-center px-2 z-20 pointer-events-auto">
-          <div className="flex items-center gap-2 sm:gap-2.5 rounded-full border border-white/15 bg-slate-950/80 px-2.5 py-1 sm:px-3 sm:py-1.5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),0_8px_24px_rgba(0,0,0,0.7)] backdrop-blur-md">
+        {/* Bottom Floating Sleek Industrial Camera Control Dock (Auto-Hides) */}
+        <div
+          onMouseEnter={() => {
+            if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+          }}
+          onMouseLeave={showControls}
+          className={cn(
+            "absolute inset-x-0 bottom-2.5 sm:bottom-3 flex items-center justify-center px-2 z-20 transition-all duration-300 ease-out",
+            controlsVisible
+              ? "opacity-100 translate-y-0 pointer-events-auto"
+              : "opacity-0 translate-y-2 pointer-events-none"
+          )}
+        >
+          <div className="flex items-center gap-2 sm:gap-2.5 rounded-full border border-white/15 bg-slate-950/85 px-2.5 py-1 sm:px-3 sm:py-1.5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),0_8px_24px_rgba(0,0,0,0.7)] backdrop-blur-md">
             {/* Flashlight / Torch */}
             <button
               type="button"
               onClick={toggleTorch}
-              title="Toggle inspection torch"
+              title="Inspection Torch / Lighting"
               className={cn(
-                "h-8 w-8 rounded-full border flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer",
+                "h-7.5 w-7.5 sm:h-8 sm:w-8 rounded-full border flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer",
                 torchOn
-                  ? "border-amber-400 bg-amber-400/20 text-amber-300 shadow-[0_0_8px_rgba(251,191,36,0.6)]"
+                  ? "border-amber-400 bg-amber-400/20 text-amber-300 shadow-[0_0_8px_rgba(251,191,36,0.5)]"
                   : "border-white/10 bg-white/5 text-white/70 hover:text-white hover:border-white/20"
               )}
             >
@@ -1137,38 +1189,38 @@ export function InspectionStation() {
                 setShowXaiHeatmap(!showXaiHeatmap);
                 toast(showXaiHeatmap ? "XAI heatmap disabled" : "XAI heatmap active (pixel thermal saliency)");
               }}
-              title="Toggle Explainable AI (XAI) thermal saliency heatmap"
+              title="XAI Defect Heatmap (Grad-CAM Saliency)"
               className={cn(
-                "h-8 w-8 rounded-full border flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer",
+                "h-7.5 w-7.5 sm:h-8 sm:w-8 rounded-full border flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer",
                 showXaiHeatmap
-                  ? "border-cyan-400 bg-cyan-400/20 text-cyan-300 shadow-[0_0_8px_rgba(6,182,212,0.6)]"
+                  ? "border-cyan-400 bg-cyan-400/20 text-cyan-300 shadow-[0_0_8px_rgba(6,182,212,0.5)]"
                   : "border-white/10 bg-white/5 text-white/70 hover:text-white hover:border-white/20"
               )}
             >
               <Flame className="h-3.5 w-3.5" />
             </button>
 
-            {/* Center Shutter Button (Play / Pause Inspection) - Compact & Elegant */}
+            {/* Center Shutter Button (Play / Pause Inspection) - Ultra-Clean */}
             <button
               type="button"
               onClick={() => setPaused(!paused)}
-              title={paused ? "Resume fabric inspection" : "Pause inspection"}
+              title={paused ? "Resume Stream" : "Pause Stream"}
               className={cn(
-                "h-9 w-9 sm:h-10 sm:w-10 rounded-full border flex items-center justify-center transition-all duration-150 active:scale-90 cursor-pointer shadow-md",
+                "h-8.5 w-8.5 sm:h-9.5 sm:w-9.5 rounded-full border flex items-center justify-center transition-all duration-150 active:scale-90 cursor-pointer shadow-md",
                 paused
-                  ? "border-amber-400/80 bg-amber-500 text-slate-950 hover:bg-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.4)]"
+                  ? "border-amber-400/80 bg-amber-500 text-slate-950 hover:bg-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.5)]"
                   : "border-cyan-400/80 bg-gradient-to-tr from-cyan-500 to-emerald-400 text-slate-950 hover:brightness-110 shadow-[0_0_12px_rgba(6,182,212,0.5)]"
               )}
             >
-              {paused ? <Play className="h-4 w-4 ml-0.5 fill-current" /> : <Pause className="h-4 w-4 fill-current" />}
+              {paused ? <Play className="h-3.5 w-3.5 ml-0.5 fill-current" /> : <Pause className="h-3.5 w-3.5 fill-current" />}
             </button>
 
             {/* Manual Flaw Log */}
             <button
               type="button"
               onClick={() => setManualOpen(true)}
-              title="Log manual flaw"
-              className="h-8 w-8 rounded-full border border-white/10 bg-white/5 text-white/70 hover:text-white hover:border-white/20 flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer"
+              title="Log Manual Flaw (ASTM 4-pt)"
+              className="h-7.5 w-7.5 sm:h-8 sm:w-8 rounded-full border border-white/10 bg-white/5 text-white/70 hover:text-white hover:border-white/20 flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer"
             >
               <PlusCircle className="h-3.5 w-3.5" />
             </button>
@@ -1177,8 +1229,8 @@ export function InspectionStation() {
             <button
               type="button"
               onClick={snapshot}
-              title="Save snapshot frame"
-              className="h-8 w-8 rounded-full border border-white/10 bg-white/5 text-white/70 hover:text-white hover:border-white/20 flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer"
+              title="Save HD Snapshot"
+              className="h-7.5 w-7.5 sm:h-8 sm:w-8 rounded-full border border-white/10 bg-white/5 text-white/70 hover:text-white hover:border-white/20 flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer"
             >
               <Camera className="h-3.5 w-3.5" />
             </button>
@@ -1188,9 +1240,9 @@ export function InspectionStation() {
 
       {/* Secondary Controls Bar: Stream Sources, Presets, and Multi-Camera Fleet */}
       {!isFullscreen && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 rounded-xl border border-border/80 bg-surface-2/60 p-2 sm:p-2.5 shadow-sm max-w-full overflow-hidden">
-          {/* Segmented Feed Switcher */}
-          <div className="flex flex-wrap items-center gap-1 rounded-lg border border-border/60 bg-surface p-1 text-xs w-full sm:w-auto">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-2.5 rounded-xl border border-border/80 bg-surface-2/70 p-2 sm:p-2.5 shadow-sm max-w-full overflow-hidden">
+          {/* Segmented Feed Switcher: 4-Column Grid on Mobile, Inline Strip on Tablet/Desktop */}
+          <div className="grid grid-cols-4 sm:flex sm:items-center gap-1 rounded-lg border border-border/60 bg-surface p-1 text-xs w-full md:w-auto">
             <button
               type="button"
               onClick={() => {
@@ -1203,14 +1255,14 @@ export function InspectionStation() {
                 toast.success("Switched to Industrial Loom Video (HD)");
               }}
               className={cn(
-                "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md font-mono text-[11px] sm:text-xs transition-all duration-150 cursor-pointer flex-1 sm:flex-initial justify-center sm:justify-start",
+                "flex items-center justify-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-md font-mono text-[11px] sm:text-xs transition-all duration-150 cursor-pointer whitespace-nowrap",
                 !uploadedSample && streamMode === "sim" && simFeedType === "video"
                   ? "bg-primary text-primary-foreground font-semibold shadow-xs"
                   : "text-muted-foreground hover:text-foreground hover:bg-surface-2"
               )}
             >
-              <Film className="h-3 w-3" />
-              <span>Loom Video</span>
+              <Video className="h-3.5 w-3.5 shrink-0" />
+              <span><span className="hidden sm:inline">Loom </span>Video</span>
             </button>
 
             <button
@@ -1224,15 +1276,14 @@ export function InspectionStation() {
                 toast.success("Switched to Clean Light Table");
               }}
               className={cn(
-                "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md font-mono text-[11px] sm:text-xs transition-all duration-150 cursor-pointer flex-1 sm:flex-initial justify-center sm:justify-start",
+                "flex items-center justify-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-md font-mono text-[11px] sm:text-xs transition-all duration-150 cursor-pointer whitespace-nowrap",
                 !uploadedSample && streamMode === "sim" && simFeedType === "clean_table"
                   ? "bg-primary text-primary-foreground font-semibold shadow-xs"
                   : "text-muted-foreground hover:text-foreground hover:bg-surface-2"
               )}
             >
-              <Layers className="h-3 w-3" />
-              <span className="hidden sm:inline">Clean Table</span>
-              <span className="sm:hidden">Table</span>
+              <SunMedium className="h-3.5 w-3.5 text-amber-300/80 shrink-0" />
+              <span><span className="hidden sm:inline">Light </span>Table</span>
             </button>
 
             <button
@@ -1245,39 +1296,47 @@ export function InspectionStation() {
                 toast.success("Switched to Live Camera Stream");
               }}
               className={cn(
-                "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md font-mono text-[11px] sm:text-xs transition-all duration-150 cursor-pointer flex-1 sm:flex-initial justify-center sm:justify-start",
+                "flex items-center justify-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-md font-mono text-[11px] sm:text-xs transition-all duration-150 cursor-pointer whitespace-nowrap",
                 !uploadedSample && streamMode === "live"
                   ? "bg-primary text-primary-foreground font-semibold shadow-xs"
                   : "text-muted-foreground hover:text-foreground hover:bg-surface-2"
               )}
             >
-              <Radio className="h-3 w-3 text-pass" />
-              <span>Live Cam</span>
+              <span className="relative flex h-2 w-2 shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <Camera className="h-3.5 w-3.5 shrink-0" />
+              <span>Live<span className="hidden sm:inline"> Cam</span></span>
             </button>
 
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md font-mono text-[11px] sm:text-xs text-muted-foreground hover:text-foreground hover:bg-surface-2 transition-all duration-150 cursor-pointer flex-1 sm:flex-initial justify-center sm:justify-start"
+              className="flex items-center justify-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-md font-mono text-[11px] sm:text-xs text-muted-foreground hover:text-foreground hover:bg-surface-2 transition-all duration-150 cursor-pointer whitespace-nowrap"
             >
-              <Upload className="h-3 w-3" />
-              <span className="hidden sm:inline">Upload Image</span>
-              <span className="sm:hidden">Upload</span>
+              <ImageUp className="h-3.5 w-3.5 shrink-0" />
+              <span>Upload<span className="hidden sm:inline"> Image</span></span>
             </button>
           </div>
 
-          {/* Presentation Flaw Presets Popover & Fleet Selector */}
-          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          {/* Presentation Flaw Presets Popover & Camera Selector: 2-Column on Mobile */}
+          <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full md:w-auto shrink-0">
             <Popover open={presetsOpen} onOpenChange={setPresetsOpen}>
               <PopoverTrigger asChild>
                 <Button
                   size="sm"
                   variant="outline"
-                  className="h-8.5 gap-1.5 text-xs font-mono border-amber-500/40 hover:border-amber-400 bg-amber-500/10 text-amber-300 cursor-pointer flex-1 sm:flex-initial"
+                  className={cn(
+                    "h-8.5 gap-1.5 text-xs font-mono border-amber-500/40 hover:border-amber-400 bg-amber-500/10 text-amber-300 cursor-pointer w-full sm:w-auto justify-between sm:justify-start whitespace-nowrap",
+                    uploadedSample && "border-amber-400 bg-amber-500/20 shadow-[0_0_8px_rgba(251,191,36,0.3)]"
+                  )}
                 >
-                  <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-                  <span className="truncate">Presets (8 Defects)</span>
-                  <ChevronDown className="h-3 w-3 opacity-60 ml-0.5" />
+                  <span className="flex items-center gap-1.5 truncate">
+                    <Sparkles className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                    <span className="truncate">{uploadedSample ? uploadedSample.name : "Presets (8 Defects)"}</span>
+                  </span>
+                  <ChevronDown className="h-3 w-3 opacity-60 shrink-0" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-80 sm:w-96 p-3 space-y-2" align="end">
@@ -1311,28 +1370,33 @@ export function InspectionStation() {
               </PopoverContent>
             </Popover>
 
-            {/* Active Fleet Switcher (if devices available) */}
-            {devices.length > 0 && (
-              <Select
-                value={selectedDeviceId || devices[0]?.id}
-                onValueChange={(val) => {
-                  setSelectedDeviceId(val);
-                  setStreamMode("live");
-                  toast.success(`Switched active camera to ${val}`);
-                }}
-              >
-                <SelectTrigger className="h-8.5 text-xs font-mono w-full sm:w-[150px] bg-surface flex-1 sm:flex-initial">
-                  <SelectValue placeholder="Fleet camera" />
-                </SelectTrigger>
-                <SelectContent align="end">
-                  {devices.map((d) => (
-                    <SelectItem key={d.id} value={d.id} className="text-xs font-mono">
-                      {d.id} · {d.streamRole ? d.streamRole.replace(/_/g, " ") : d.kind}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
+            {/* Camera Hardware / Fleet Device Switcher (Always Populated, Never Blank) */}
+            <Select
+              value={selectedDeviceId || "rear"}
+              onValueChange={(val) => {
+                setSelectedDeviceId(val);
+                setStreamMode("live");
+                toast.success(`Switched camera to ${val}`);
+              }}
+            >
+              <SelectTrigger className="h-8.5 text-xs font-mono w-full sm:w-[160px] bg-surface border-border/70 flex items-center gap-1.5">
+                <Smartphone className="h-3 w-3 text-telemetry shrink-0" />
+                <SelectValue placeholder="Camera / Fleet" />
+              </SelectTrigger>
+              <SelectContent align="end">
+                <SelectItem value="rear" className="text-xs font-mono">
+                  Rear / Main Camera
+                </SelectItem>
+                <SelectItem value="front" className="text-xs font-mono">
+                  Front / Selfie Camera
+                </SelectItem>
+                {devices.map((d) => (
+                  <SelectItem key={d.id} value={d.id} className="text-xs font-mono">
+                    {d.id} · {d.streamRole ? d.streamRole.replace(/_/g, " ") : d.kind}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       )}

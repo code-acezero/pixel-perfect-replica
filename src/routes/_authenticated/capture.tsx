@@ -67,7 +67,7 @@ function CaptureErrorFallback({ error, reset }: { error: unknown; reset: () => v
 
 function CapturePage() {
   const { tab = "live", pair, roll: queryRoll, mode } = Route.useSearch();
-  const navigate = useNavigate();
+  const navigate = useNavigate({ from: Route.fullPath });
   const {
     activeRollId,
     activeSessionId,
@@ -84,7 +84,7 @@ function CapturePage() {
   const defects = allDefects.filter((d) => d.rollId === activeRollId);
   const cluster = useTensora((s) => s.alerts?.find((a) => a.id === "ALR-0091"));
   const currentRoll = rolls.find((r) => r.id === activeRollId) ?? rolls[0] ?? rollsSeed[0];
-  const currentBuyer = (currentRoll && buyers.find((b) => b.id === currentRoll.buyerId)) ?? buyers[0] ?? buyersSeed[0];
+  const currentBuyer = ((currentRoll && buyers.find((b) => b.id === currentRoll.buyerId)) ?? buyers[0] ?? buyersSeed[0])!;
 
   // If in companion broadcaster mode (e.g. phone scanned QR code or user clicked "Launch Broadcaster")
   if (pair && mode === "broadcaster") {
