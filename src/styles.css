@@ -561,13 +561,25 @@
 }
 
 [data-sonner-toast] [data-close-button] {
+  position: absolute !important;
+  top: 8px !important;
+  right: 8px !important;
+  left: auto !important;
+  transform: none !important;
+  width: 18px !important;
+  height: 18px !important;
+  border-radius: 9999px !important;
   background: #1e293b !important;
   border: 1px solid #475569 !important;
   color: #94a3b8 !important;
+  display: grid !important;
+  place-items: center !important;
+  opacity: 0.7 !important;
   transition: all 0.15s ease !important;
 }
 
 [data-sonner-toast] [data-close-button]:hover {
+  opacity: 1 !important;
   background: #334155 !important;
   color: #ffffff !important;
 }
@@ -582,31 +594,62 @@
   bottom: auto !important;
   width: auto !important;
   max-width: calc(100vw - 20px) !important;
+  z-index: 99999 !important;
 }
 
 [data-sonner-toaster] [data-sonner-toast] {
   position: relative !important;
+  overflow: visible !important;
+  min-width: 210px !important;
+  max-width: 290px !important;
+  width: max-content !important;
   margin-left: auto !important;
   background-color: var(--surface-2, #0f172a) !important;
-  border-radius: 0.85rem !important;
+  border-radius: 14px !important;
   border: 1px solid var(--border, #334155) !important;
-  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.75), inset 1px 1px 1.5px rgba(255, 255, 255, 0.12), inset -1.5px -1.5px 2px rgba(0, 0, 0, 0.5) !important;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.8), inset 1px 1px 1.5px rgba(255, 255, 255, 0.12), inset -1.5px -1.5px 2px rgba(0, 0, 0, 0.5) !important;
+  padding: 10px 14px !important;
 }
 
-/* Dialogue speech-bubble arrow pointer pointing directly at the bell icon */
+/* Crisp triangular speech-bubble arrow pointer pointing directly at bell icon */
 [data-sonner-toaster] [data-sonner-toast]::before {
-  content: "";
-  position: absolute;
-  top: -6px;
-  right: 20px;
-  width: 12px;
-  height: 12px;
-  background: var(--surface-2, #0f172a);
-  border-top: 1px solid var(--border, #334155);
-  border-left: 1px solid var(--border, #334155);
-  transform: rotate(45deg);
-  z-index: 10;
-  pointer-events: none;
+  content: "" !important;
+  position: absolute !important;
+  top: -6px !important;
+  right: var(--bell-toast-arrow-right, 26px) !important;
+  transform: translateX(50%) rotate(45deg) !important;
+  width: 11px !important;
+  height: 11px !important;
+  background: var(--surface-2, #0f172a) !important;
+  border-top: 1px solid var(--border, #334155) !important;
+  border-left: 1px solid var(--border, #334155) !important;
+  border-top-left-radius: 2px !important;
+  z-index: 100 !important;
+  pointer-events: none !important;
+}
+
+[data-sonner-toast] [data-content] {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  padding-right: 20px !important;
+}
+
+[data-sonner-toast] [data-title] {
+  font-weight: 700 !important;
+  font-size: 12.5px !important;
+  line-height: 1.3 !important;
+  letter-spacing: -0.01em !important;
+  color: #f8fafc !important;
+  white-space: nowrap !important;
+}
+
+[data-sonner-toast] [data-description] {
+  color: #94a3b8 !important;
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+  margin-top: 1px !important;
+  white-space: nowrap !important;
 }
 
 /* -------------------------------------------------------------------------- */

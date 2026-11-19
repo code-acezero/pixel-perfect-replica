@@ -758,17 +758,23 @@ export function AppShell({ children }: { children: ReactNode }) {
       const bell = document.getElementById("tensora-alerts-bell");
       if (bell) {
         const rect = bell.getBoundingClientRect();
-        const top = Math.round(rect.bottom + 8);
+        const top = Math.round(rect.bottom + 9);
         const bellCenterFromRight = window.innerWidth - (rect.left + rect.width / 2);
-        const right = Math.max(8, Math.round(bellCenterFromRight - 26));
+        
+        // Arrow is positioned 26px inside the right edge of the speech bubble
+        const arrowOffset = 26;
+        const right = Math.max(12, Math.round(bellCenterFromRight - arrowOffset));
+        const arrowRight = Math.max(14, Math.min(240, Math.round(bellCenterFromRight - right)));
+        
         document.documentElement.style.setProperty("--bell-toast-top", `${top}px`);
         document.documentElement.style.setProperty("--bell-toast-right", `${right}px`);
+        document.documentElement.style.setProperty("--bell-toast-arrow-right", `${arrowRight}px`);
       }
     };
     updateBellToastPosition();
     window.addEventListener("resize", updateBellToastPosition);
     window.addEventListener("scroll", updateBellToastPosition);
-    const id = setInterval(updateBellToastPosition, 1500);
+    const id = setInterval(updateBellToastPosition, 1000);
     return () => {
       window.removeEventListener("resize", updateBellToastPosition);
       window.removeEventListener("scroll", updateBellToastPosition);
