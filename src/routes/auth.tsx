@@ -5,7 +5,9 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Wordmark } from "@/components/tensora/brand";
+import { checkGoogleOAuthStatus } from "@/lib/tensora/auth.functions";
 
 function safeRedirect(v: unknown) {
   if (typeof v !== "string") return "/";
@@ -60,6 +62,7 @@ function AuthPage() {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [busy, setBusy] = useState(false);
   const [googleBusy, setGoogleBusy] = useState(false);
+  const [googleModalOpen, setGoogleModalOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -118,8 +121,16 @@ function AuthPage() {
     setGoogleBusy(true);
     if (target !== "/") sessionStorage.setItem("tensora-after-auth", target);
 
-    // Direct native Supabase OAuth
     try {
+      // 1. Verify if Google OAuth is configured in Supabase before redirecting
+      const status = await checkGoogleOAuthStatus().catch(() => ({ enabled: false, error: "Network check failed" }));
+      if (!status.enabled) {
+        setGoogleBusy(false);
+        setGoogleModalOpen(true);
+        return;
+      }
+
+      // 2. Direct native Supabase OAuth
       const redirectUri = `${window.location.origin}/auth`;
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -134,12 +145,7 @@ function AuthPage() {
 
       if (error) {
         setGoogleBusy(false);
-        const msg = error.message || "";
-        if (msg.includes("not enabled") || msg.includes("validation_failed")) {
-          toast.error("Google sign-in is not enabled in your Supabase project yet. Please enable Google in Supabase Dashboard (Auth > Providers > Google) or use 1-Click Demo.", { duration: 7000 });
-        } else {
-          toast.error(msg);
-        }
+        toast.error(error.message || "Google sign-in error");
         return;
       }
 
@@ -298,6 +304,51 @@ function AuthPage() {
           </Link>
         </div>
       </div>
+
+      {/* Google OAuth Provider Setup Notice Dialog */}
+      <Dialog open={googleModalOpen} onOpenChange={setGoogleModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <GoogleIcon className="h-5 w-5 shrink-0" /> Google Sign-In Not Configured Yet
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2 text-xs text-muted-foreground leading-relaxed">
+            <p>
+              Google OAuth is not enabled in your Supabase project (<code>mgjqyymqhsxnwkuqskfi</code>).
+            </p>
+            <div className="rounded-lg border border-border bg-surface-2 p-3 space-y-1 font-mono text-[11px] text-foreground">
+              <div className="font-semibold text-primary">To enable real Google sign-in:</div>
+              <div>1. Open your Supabase Dashboard: <b>Auth &gt; Providers &gt; Google</b></div>
+              <div>2. Toggle <b>Enable Google provider</b></div>
+              <div>3. Enter your Google Cloud Client ID & Secret</div>
+            </div>
+            <p>
+              For instant testing, demo presentation, or review without OAuth setup, use the <b>1-Click Demo</b>:
+            </p>
+          </div>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setGoogleModalOpen(false)}
+              className="text-xs"
+            >
+              Close
+            </Button>
+            <Button
+              type="button"
+              onClick={() => {
+                setGoogleModalOpen(false);
+                demoAccess();
+              }}
+              className="text-xs bg-primary text-primary-foreground font-semibold"
+            >
+              <Zap className="h-3.5 w-3.5 mr-1" /> Continue as Demo Inspector
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
