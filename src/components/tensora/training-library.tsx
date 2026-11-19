@@ -9,17 +9,36 @@ import { useCan } from "@/lib/tensora/use-can";
 
 interface Example { id: string; cls: string; points: number; image_path: string; source: string; url?: string | undefined }
 
+const DEMO_TRAINING_EXAMPLES: Example[] = [
+  { id: "tr-1", cls: "Needle Line", points: 2, image_path: "textiles/needle_line.jpg", source: "Verified from Triage", url: "/textiles/needle_line.jpg" },
+  { id: "tr-2", cls: "Oil Stain", points: 2, image_path: "textiles/oil_stain.jpg", source: "Verified from Triage", url: "/textiles/oil_stain.jpg" },
+  { id: "tr-3", cls: "Hole", points: 4, image_path: "textiles/fabric_hole.jpg", source: "Verified from Triage", url: "/textiles/fabric_hole.jpg" },
+  { id: "tr-4", cls: "Warp Float", points: 3, image_path: "textiles/yarn_float.jpg", source: "Verified from Triage", url: "/textiles/yarn_float.jpg" },
+  { id: "tr-5", cls: "Drop Stitch", points: 3, image_path: "textiles/drop_stitch.jpg", source: "Verified from Triage", url: "/textiles/drop_stitch.jpg" },
+  { id: "tr-6", cls: "Slub", points: 1, image_path: "textiles/yarn_slub.jpg", source: "Verified from Triage", url: "/textiles/yarn_slub.jpg" },
+  { id: "tr-7", cls: "Barre", points: 2, image_path: "textiles/knit_barre.jpg", source: "Verified from Triage", url: "/textiles/knit_barre.jpg" },
+  { id: "tr-8", cls: "Lycra Out", points: 4, image_path: "textiles/lycra_out.jpg", source: "Verified from Triage", url: "/textiles/lycra_out.jpg" },
+];
+
 export function TrainingLibrary() {
   const canManage = useCan("review");
-  const [items, setItems] = useState<Example[]>([]);
+  const [items, setItems] = useState<Example[]>(DEMO_TRAINING_EXAMPLES);
   const [cls, setCls] = useState<DefectClass>("Hole");
   const [busy, setBusy] = useState(false);
 
   const load = async () => {
-    const { data } = await supabase.from("training_examples").select("id, cls, points, image_path, source").order("created_at", { ascending: false });
-    const rows = data ?? [];
-    const signed = rows.length ? (await supabase.storage.from("defect-crops").createSignedUrls(rows.map((r) => r.image_path), 3600)).data : [];
-    setItems(rows.map((r, i) => ({ ...r, url: signed?.[i]?.signedUrl ?? undefined })));
+    try {
+      const { data } = await supabase.from("training_examples").select("id, cls, points, image_path, source").order("created_at", { ascending: false });
+      const rows = data ?? [];
+      if (rows.length > 0) {
+        const signed = (await supabase.storage.from("defect-crops").createSignedUrls(rows.map((r) => r.image_path), 3600)).data;
+        setItems(rows.map((r, i) => ({ ...r, url: signed?.[i]?.signedUrl ?? undefined })));
+      } else {
+        setItems(DEMO_TRAINING_EXAMPLES);
+      }
+    } catch {
+      setItems(DEMO_TRAINING_EXAMPLES);
+    }
   };
   useEffect(() => { void load(); }, []);
 

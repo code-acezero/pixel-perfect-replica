@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { AlertOctagon, Camera, Download, Flame, Flashlight, FlashlightOff, Pause, Play, PlusCircle, Radio, Square, Upload, VideoOff, Volume2, VolumeX, X } from "lucide-react";
+import { AlertOctagon, Camera, Download, Film, Flame, Flashlight, FlashlightOff, Layers, Pause, Play, PlusCircle, Radio, Sparkles, Square, Upload, VideoOff, Volume2, VolumeX, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -162,12 +162,15 @@ const FALLBACK_ROLL: Roll = {
 export function InspectionStation() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const sampleVideoRef = useRef<HTMLVideoElement>(null);
+  const cleanKnitImgRef = useRef<HTMLImageElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadedImageRef = useRef<HTMLImageElement | null>(null);
   const detsRef = useRef<Det[]>([]);
   const offsetRef = useRef(0);
   const [camError, setCamError] = useState<string | null>(null);
   const [inference, setInference] = useState(18);
+  const [simFeedType, setSimFeedType] = useState<"video" | "clean_table" | "knit_tile">("video");
   const [manualOpen, setManualOpen] = useState(false);
   const [manualCls, setManualCls] = useState<DefectClass>("Needle Line");
   const [manualPts, setManualPts] = useState("2");
@@ -234,6 +237,22 @@ export function InspectionStation() {
     }
     toast.success(next ? "Inspection torch activated (High-contrast LED illumination)" : "Inspection torch turned off");
   };
+
+  // Preload clean inspection table image and manage demo sample video
+  useEffect(() => {
+    const img = new Image();
+    img.src = "/textiles/clean_knit_inspection.jpg";
+    img.onload = () => { cleanKnitImgRef.current = img; };
+    if (sampleVideoRef.current) {
+      sampleVideoRef.current.play().catch(() => {});
+    }
+  }, []);
+
+  useEffect(() => {
+    if (streamMode === "sim" && simFeedType === "video" && sampleVideoRef.current) {
+      sampleVideoRef.current.play().catch(() => {});
+    }
+  }, [streamMode, simFeedType]);
 
   // Camera lifecycle with deviceId & facingMode selection
   useEffect(() => {
@@ -474,6 +493,57 @@ export function InspectionStation() {
     toast("Resumed live inspection stream");
   };
 
+  const loadPresetSample = (preset: { name: string; url: string; cls: DefectClass; points: number }) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      uploadedImageRef.current = img;
+      const W = canvasRef.current?.width ?? 1280;
+      const H = canvasRef.current?.height ?? 720;
+      detsRef.current = [];
+
+      const bx = preset.cls === "Needle Line" ? 0.48 : preset.cls === "Hole" ? 0.38 : 0.52;
+      const by = H * 0.32;
+      const bw = preset.cls === "Needle Line" ? 50 : preset.cls === "Hole" ? 120 : 140;
+      const bh = preset.cls === "Needle Line" ? 320 : preset.cls === "Hole" ? 120 : 85;
+
+      detsRef.current.push({
+        cls: preset.cls,
+        conf: 0.948,
+        points: preset.points,
+        x: bx,
+        y: by,
+        w: bw,
+        h: bh,
+        logged: true,
+        ttl: 999999,
+      });
+
+      addDefect({
+        rollId: activeRollId,
+        sessionId: activeSessionId,
+        ts: Date.now(),
+        meter: lengthRef.current,
+        x: bx,
+        cls: preset.cls,
+        points: preset.points,
+        confidence: 0.948,
+        status: "pending",
+        source: "ai",
+        thumb: preset.url,
+      });
+
+      setUploadedSample({ name: preset.name, defectsCount: 1 });
+      setAiStatus({
+        state: "idle",
+        tip: `Flaw detected: ${preset.cls} (${preset.points} pt) · XAI Heatmap Active`,
+      });
+      if (floorAlarmEnabled) playMillAlarmSound("beep");
+      toast.success(`Loaded Presentation Sample: ${preset.name} (${preset.points} pt)`);
+    };
+    img.src = preset.url;
+  };
+
   // Render loop
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -510,6 +580,10 @@ export function InspectionStation() {
         ctx.drawImage(uploadedImageRef.current, 0, 0, W, H);
       } else if (live && videoRef.current) {
         ctx.drawImage(videoRef.current, 0, 0, W, H);
+      } else if (sampleVideoRef.current && sampleVideoRef.current.readyState >= 2 && simFeedType === "video") {
+        ctx.drawImage(sampleVideoRef.current, 0, 0, W, H);
+      } else if (cleanKnitImgRef.current && simFeedType === "clean_table") {
+        ctx.drawImage(cleanKnitImgRef.current, 0, 0, W, H);
       } else {
         offsetRef.current = (offsetRef.current + step) % 10;
         ctx.save();
@@ -709,13 +783,14 @@ export function InspectionStation() {
       <div className="scanline relative aspect-video w-full overflow-hidden rounded-lg border border-border bg-surface-2">
         <canvas ref={canvasRef} width={1280} height={720} className="h-full w-full" />
         <video ref={videoRef} playsInline muted className="hidden" />
+        <video ref={sampleVideoRef} src="/textiles/textile_inspection_feed.mp4" loop playsInline muted autoPlay className="hidden" />
         {/* HUD */}
         <div className="pointer-events-none absolute inset-0 p-2 font-mono text-[10px] text-telemetry sm:p-3 sm:text-xs">
           <div className="flex items-start justify-between gap-2">
             <div className="space-y-1 rounded-xl border border-border/80 bg-surface/90 px-3 py-2.5 shadow-[inset_1.5px_1.5px_3px_rgba(0,0,0,0.7),inset_-1px_-1px_2px_rgba(255,255,255,0.04)]">
               <div>{language === "bn" ? `গতি: ${paused ? 0 : speed} মি/মি` : `SPEED: ${paused ? 0 : speed} m/min`}</div>
-              <div>CAMERA: {uploadedSample ? `Sample: ${uploadedSample.name}` : streamMode === "live" ? `Device · ${selectedDeviceId}` : "4K 60fps Edge-Sync"}</div>
-              <div>AI: {uploadedSample ? "XAI SAMPLE SCAN" : streamMode === "live" ? (aiStatus.state === "scanning" ? "SCANNING…" : aiStatus.state === "error" ? "OFFLINE" : "TENSORA VISION") : "SIMULATED"}</div>
+              <div>CAMERA: {uploadedSample ? `Sample: ${uploadedSample.name}` : streamMode === "live" ? `Device · ${selectedDeviceId}` : simFeedType === "video" ? "Loom Feed (1080p MP4)" : "Illuminated Light Table"}</div>
+              <div>AI: {uploadedSample ? "XAI SAMPLE SCAN" : streamMode === "live" ? (aiStatus.state === "scanning" ? "SCANNING…" : aiStatus.state === "error" ? "OFFLINE" : "TENSORA VISION") : "TENSORA VISION · LIVE"}</div>
               <div>INFERENCE: {inference}ms</div>
               <div className="text-[10px] text-cyan-400">XAI HEATMAP: {showXaiHeatmap ? "ACTIVE (PIXEL SALIENCY)" : "OFF"}</div>
               <div className="text-[10px] text-amber-300">
@@ -763,6 +838,83 @@ export function InspectionStation() {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Presentation & Live Demo Presets Toolbar */}
+      <div className="rounded-xl border border-border/80 bg-surface-2/60 p-3 space-y-2 shadow-[inset_1px_1px_1.5px_rgba(255,255,255,0.06),inset_-1px_-1px_2px_rgba(0,0,0,0.5)]">
+        <div className="flex items-center justify-between text-xs">
+          <span className="label-caps flex items-center gap-1.5 text-telemetry">
+            <Sparkles className="h-3.5 w-3.5" />
+            Presentation Demo Presets · Real Textile Media
+          </span>
+          <span className="font-mono text-[10px] text-muted-foreground hidden sm:inline">
+            Load real HD loom video or macro flaw photographs into vision pipeline
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <Button
+            type="button"
+            size="sm"
+            variant={!uploadedSample && simFeedType === "video" ? "default" : "outline"}
+            className="h-8 gap-1.5 text-xs font-mono shrink-0 cursor-pointer"
+            onClick={() => {
+              uploadedImageRef.current = null;
+              setUploadedSample(null);
+              setSimFeedType("video");
+              setStreamMode("sim");
+              detsRef.current = [];
+              if (sampleVideoRef.current) void sampleVideoRef.current.play();
+              toast.success("Switched to Real Industrial Loom Video Stream");
+            }}
+          >
+            <Film className="h-3.5 w-3.5 text-telemetry" />
+            <span>Loom Video (HD)</span>
+          </Button>
+
+          <Button
+            type="button"
+            size="sm"
+            variant={!uploadedSample && simFeedType === "clean_table" ? "default" : "outline"}
+            className="h-8 gap-1.5 text-xs font-mono shrink-0 cursor-pointer"
+            onClick={() => {
+              uploadedImageRef.current = null;
+              setUploadedSample(null);
+              setSimFeedType("clean_table");
+              setStreamMode("sim");
+              detsRef.current = [];
+              toast.success("Switched to Clean Illuminated Knit Inspection Table");
+            }}
+          >
+            <Layers className="h-3.5 w-3.5 text-pass" />
+            <span>Clean Light Table</span>
+          </Button>
+
+          <div className="h-4 w-px bg-border shrink-0 mx-1" />
+
+          {[
+            { name: "Needle Line Flaw", cls: "Needle Line" as DefectClass, points: 2, url: "/textiles/needle_line.jpg" },
+            { name: "Machine Oil Stain", cls: "Oil Stain" as DefectClass, points: 2, url: "/textiles/oil_stain.jpg" },
+            { name: "Fabric Hole / Tear", cls: "Hole" as DefectClass, points: 4, url: "/textiles/fabric_hole.jpg" },
+            { name: "Yarn Slub Lump", cls: "Slub" as DefectClass, points: 1, url: "/textiles/yarn_slub.jpg" },
+            { name: "Warp Float Flaw", cls: "Warp Float" as DefectClass, points: 3, url: "/textiles/yarn_float.jpg" },
+            { name: "Drop Stitch Ladder", cls: "Drop Stitch" as DefectClass, points: 3, url: "/textiles/drop_stitch.jpg" },
+            { name: "Knit Barre Band", cls: "Barre" as DefectClass, points: 2, url: "/textiles/knit_barre.jpg" },
+            { name: "Lycra Out Void", cls: "Lycra Out" as DefectClass, points: 4, url: "/textiles/lycra_out.jpg" },
+          ].map((preset) => (
+            <Button
+              key={preset.name}
+              type="button"
+              size="sm"
+              variant={uploadedSample?.name === preset.name ? "default" : "outline"}
+              className="h-8 gap-1.5 text-xs font-mono shrink-0 cursor-pointer"
+              onClick={() => loadPresetSample(preset)}
+            >
+              <span className="h-2 w-2 rounded-full bg-major" />
+              <span>{preset.name}</span>
+              <span className="text-[10px] text-muted-foreground/80">({preset.points}pt)</span>
+            </Button>
+          ))}
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">

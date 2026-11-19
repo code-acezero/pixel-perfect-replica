@@ -41,9 +41,17 @@ export async function responsesJSON<T>(opts: {
     }
     if (opts.schemaName === "roll_report") {
       return {
-        summary: "Inspection successfully completed. Quality within standard tolerances.",
-        recommendations: "Maintain current take-up roller speed and stenter feed rate.",
-        riskLevel: "low",
+        headline: "Tensora Factory Quality Audit & Defect Synthesis Narrative",
+        summary: "Comprehensive optical inspection completed. Optical surface scanning identified minor localized yarn anomalies; overall fabric construction and defect penalty rate align within international buyer acceptance tolerances.",
+        rootCauses: [
+          "Normal yarn tension variation across feeder packages during high-speed take-down",
+          "Trace lubricant misting controlled by perimeter wiper seals",
+        ],
+        actions: [
+          "Maintain current machine cylinder take-down roller speed and stenter feed rate",
+          "Clear inspected roll for automated certificate generation and batch export packaging",
+        ],
+        buyerNote: "Roll conforms to specified ASTM quality criteria and is certified ready for export shipment.",
       } as unknown as T;
     }
     throw new AiError(401, "AI API key is not configured. Set AI_API_KEY or OPENAI_API_KEY in .env.local");

@@ -575,6 +575,17 @@ export const sessionsSeed: Session[] = [
   },
 ];
 
+export const DEFECT_THUMBS: Record<DefectClass, string> = {
+  "Needle Line": "/textiles/needle_line.jpg",
+  "Oil Stain": "/textiles/oil_stain.jpg",
+  "Hole": "/textiles/fabric_hole.jpg",
+  "Warp Float": "/textiles/yarn_float.jpg",
+  "Drop Stitch": "/textiles/drop_stitch.jpg",
+  "Slub": "/textiles/yarn_slub.jpg",
+  "Barre": "/textiles/knit_barre.jpg",
+  "Lycra Out": "/textiles/lycra_out.jpg",
+};
+
 let seq = 100;
 function d(
   rollId: string,
@@ -589,6 +600,7 @@ function d(
   zone?: DefectZone,
   lengthIn = 1.0,
   isContinuous = false,
+  thumb?: string,
 ): Defect {
   seq += 1;
   const computedZone: DefectZone =
@@ -605,6 +617,7 @@ function d(
     confidence,
     status,
     source: "ai",
+    thumb: thumb ?? DEFECT_THUMBS[cls],
     zone: computedZone,
     lengthIn,
     isContinuous,
@@ -677,10 +690,18 @@ export const alertsSeed: Alert[] = [
 
 export const certificatesSeed: Certificate[] = [
   {
+    id: "QAC-2026-0032",
+    rollId: "TX-8829",
+    issuedAt: BASE_TS + 2.5 * 3600e3,
+    issuer: "R. Hossain (Lead Inspector)",
+    verdict: "PASS",
+    score: 12.8,
+  },
+  {
     id: "QAC-2026-0031",
     rollId: "TX-8828",
     issuedAt: BASE_TS - 1 * 3600e3,
-    issuer: "M. Rahman",
+    issuer: "M. Rahman (QC In-charge)",
     verdict: "PASS",
     score: 3.6,
   },
@@ -688,9 +709,25 @@ export const certificatesSeed: Certificate[] = [
     id: "QAC-2026-0030",
     rollId: "TX-8825",
     issuedAt: BASE_TS - 8 * 3600e3,
-    issuer: "N. Chowdhury",
+    issuer: "N. Chowdhury (Senior Auditor)",
     verdict: "PASS",
     score: 0.4,
+  },
+  {
+    id: "QAC-2026-0029",
+    rollId: "TX-8826",
+    issuedAt: BASE_TS - 5 * 3600e3,
+    issuer: "T. Islam (Lead Inspector)",
+    verdict: "REJECT",
+    score: 29.7,
+  },
+  {
+    id: "QAC-2026-0028",
+    rollId: "TX-8827",
+    issuedAt: BASE_TS - 2 * 3600e3,
+    issuer: "S. Akter (Plant Inspector)",
+    verdict: "PASS",
+    score: 21.4,
   },
 ];
 
