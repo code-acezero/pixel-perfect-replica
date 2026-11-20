@@ -1,7 +1,7 @@
 // Native multi-provider AI Vision and Intelligence server for Tensora
 export const AI_MODEL =
   process.env["AI_MODEL"] ||
-  (process.env["GEMINI_API_KEY"] ? "gemini-3.8-flash" : "gpt-4o-mini");
+  (process.env["GEMINI_API_KEY"] ? "gemini-3-flash-preview" : "gpt-4o-mini");
 
 export class AiError extends Error {
   constructor(public status: number, message: string) {
@@ -301,56 +301,66 @@ export async function responsesJSON<T>(opts: {
     throw new AiError(401, "AI API key is not configured. Set AI_API_KEY or GEMINI_API_KEY in .env.local");
   }
 
-  // 1. Native Google Gemini API endpoint handling
+  // 1. Native Google Gemini API endpoint handling with automatic multi-model fallback pool
   if (process.env["GEMINI_API_KEY"] && !process.env["OPENAI_API_KEY"] && !process.env["AI_GATEWAY_URL"]) {
-    try {
-      const parts: Record<string, unknown>[] = [
-        { text: opts.instructions },
-      ];
+    const candidateModels = [
+      AI_MODEL,
+      "gemini-3-flash-preview",
+      "gemini-3.1-flash-lite",
+      "gemini-3.5-flash",
+    ].filter((m, i, arr) => m && arr.indexOf(m) === i);
 
-      for (const item of opts.content) {
-        if (item["type"] === "input_image" && typeof item["image_url"] === "string") {
-          const match = (item["image_url"] as string).match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
-          if (match) {
-            parts.push({
-              inline_data: {
-                mime_type: match[1],
-                data: match[2],
-              },
-            });
+    const parts: Record<string, unknown>[] = [
+      { text: opts.instructions },
+    ];
+
+    for (const item of opts.content) {
+      if (item["type"] === "input_image" && typeof item["image_url"] === "string") {
+        const match = (item["image_url"] as string).match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
+        if (match) {
+          parts.push({
+            inline_data: {
+              mime_type: match[1],
+              data: match[2],
+            },
+          });
+        }
+      } else if (item["type"] === "input_text" && typeof item["text"] === "string") {
+        parts.push({ text: item["text"] });
+      }
+    }
+
+    for (const model of candidateModels) {
+      try {
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+        const res = await fetch(geminiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: AbortSignal.timeout(12000),
+          body: JSON.stringify({
+            contents: [{ parts }],
+            generationConfig: {
+              responseMimeType: "application/json",
+              responseSchema: opts.schema,
+            },
+          }),
+        });
+
+        if (res.ok) {
+          const json = (await res.json()) as {
+            candidates?: { content?: { parts?: { text?: string }[] } }[];
+          };
+          const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (text) {
+            return JSON.parse(text) as T;
           }
-        } else if (item["type"] === "input_text" && typeof item["text"] === "string") {
-          parts.push({ text: item["text"] });
+        } else {
+          const errJson = await res.json().catch(() => ({}));
+          console.warn(`Gemini model ${model} error:`, res.status, errJson);
         }
+      } catch (err) {
+        console.warn(`Gemini model ${model} failed, trying next candidate:`, err);
       }
-
-      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${AI_MODEL}:generateContent?key=${apiKey}`;
-      const res = await fetch(geminiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts }],
-          generationConfig: {
-            responseMimeType: "application/json",
-            responseSchema: opts.schema,
-          },
-        }),
-      });
-
-      if (res.ok) {
-        const json = await res.json() as {
-          candidates?: { content?: { parts?: { text?: string }[] } }[];
-        };
-        const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (text) {
-          return JSON.parse(text) as T;
-        }
-      } else {
-        const errJson = await res.json().catch(() => ({}));
-        console.warn("Gemini API error:", res.status, errJson);
-      }
-    } catch (err) {
-      console.warn("Gemini API call failed, falling back to Edge Vision:", err);
     }
 
     // Graceful fallback to Edge Vision if remote API is unreachable or rate-limited

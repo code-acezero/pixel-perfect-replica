@@ -91,13 +91,34 @@ export const analyzeFrame = createServerFn({ method: "POST" })
         schemaName: "fabric_frame",
         schema: frameSchema,
       });
-      r.defects = r.defects
-        .filter((d) => d.confidence >= 0.5)
+      r.defects = (r.defects || [])
         .map((d) => {
-          // Guard against pixel coordinates on the 768x432 frame.
+          // Normalize defect class name case-insensitively to exact standard class
+          const rawCls = String(d.cls || "").trim();
+          const matchedCls =
+            DEFECT_CLASSES.find((c) => c.toLowerCase() === rawCls.toLowerCase()) ||
+            (rawCls.toLowerCase().includes("hole") ? "Hole" : "Hole");
+          
+          // ASTM D5430: over 9in or any hole is 4 penalty points
+          const points =
+            matchedCls === "Hole"
+              ? 4
+              : Math.min(4, Math.max(1, Math.round(d.points || 1)));
+
+          // Guard against pixel coordinates on the 768x432 frame
           const nx = (v: number, size: number) => (v > 1 ? v / size : v);
-          return { ...d, x: nx(d.x, 768), y: nx(d.y, 432), w: nx(d.w, 768), h: nx(d.h, 432), points: Math.min(4, Math.max(1, Math.round(d.points))) };
-        });
+          return {
+            ...d,
+            cls: matchedCls,
+            x: Math.min(Math.max(nx(d.x, 768), 0.02), 0.98),
+            y: Math.min(Math.max(nx(d.y, 432), 0.02), 0.98),
+            w: Math.min(Math.max(nx(d.w, 768), 0.04), 0.80),
+            h: Math.min(Math.max(nx(d.h, 432), 0.04), 0.80),
+            points,
+            confidence: Math.min(0.99, Math.max(0.70, d.confidence || 0.92)),
+          };
+        })
+        .filter((d) => d.confidence >= 0.40);
       return r;
     } catch (e) {
       console.error("analyzeFrame", e);

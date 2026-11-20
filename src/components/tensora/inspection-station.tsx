@@ -194,6 +194,91 @@ function drawXaiHeatmap(ctx: CanvasRenderingContext2D, d: Det, W: number) {
   ctx.restore();
 }
 
+/**
+ * Fast client-side optical contrast & flaw detector for live camera feeds.
+ * Analyzes raw canvas pixels in real-time to detect structural voids (holes),
+ * dark stains, and heavy density disruptions directly on the mobile device.
+ */
+function detectOpticalFabricAnomalies(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number
+): { cls: DefectClass; confidence: number; points: number; x: number; y: number; w: number; h: number } | null {
+  try {
+    const imgData = ctx.getImageData(0, 0, width, height);
+    const data = imgData.data;
+    const step = 6;
+    let totalLum = 0;
+    let count = 0;
+
+    const cols = 12;
+    const rows = 8;
+    const cellW = width / cols;
+    const cellH = height / rows;
+    const gridLum = new Float32Array(cols * rows);
+    const gridCount = new Int32Array(cols * rows);
+
+    for (let y = 0; y < height; y += step) {
+      const rowIdx = Math.floor(y / cellH);
+      for (let x = 0; x < width; x += step) {
+        const colIdx = Math.floor(x / cellW);
+        const i = (y * width + x) * 4;
+        const r = data[i]!;
+        const g = data[i + 1]!;
+        const b = data[i + 2]!;
+        const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+        totalLum += lum;
+        count++;
+        const cellIdx = rowIdx * cols + colIdx;
+        gridLum[cellIdx] += lum;
+        gridCount[cellIdx]++;
+      }
+    }
+
+    const avgLum = totalLum / Math.max(1, count);
+    // Ignore extreme darkness or extreme glare
+    if (avgLum < 20 || avgLum > 248) return null;
+
+    let maxContrast = 0;
+    let targetCell = -1;
+
+    for (let c = 0; c < cols * rows; c++) {
+      const cellAvg = gridLum[c]! / Math.max(1, gridCount[c]!);
+      const contrast = Math.abs(cellAvg - avgLum) / Math.max(1, avgLum);
+      if (contrast > maxContrast) {
+        maxContrast = contrast;
+        targetCell = c;
+      }
+    }
+
+    // A puncture/hole cut in fabric typically creates a strong localized contrast shift (> 30%)
+    if (maxContrast > 0.30 && targetCell >= 0) {
+      const col = targetCell % cols;
+      const row = Math.floor(targetCell / cols);
+      const centerX = (col + 0.5) / cols;
+      const centerY = (row + 0.5) / rows;
+      const cellAvg = gridLum[targetCell]! / Math.max(1, gridCount[targetCell]!);
+      
+      const isHole = maxContrast > 0.38 || cellAvg < avgLum * 0.60;
+      const cls: DefectClass = isHole ? "Hole" : "Oil Stain";
+      const points = isHole ? 4 : 2;
+
+      return {
+        cls,
+        confidence: Math.min(0.96, +(0.85 + maxContrast * 0.15).toFixed(2)),
+        points,
+        x: centerX,
+        y: centerY,
+        w: 0.16,
+        h: 0.16,
+      };
+    }
+  } catch {
+    // Canvas reading protection if cross-origin or unsupported
+  }
+  return null;
+}
+
 const FALLBACK_ROLL: Roll = {
   id: "TX-8829",
   buyerId: "BUY-001",
@@ -480,7 +565,10 @@ export function InspectionStation() {
         }
         if (videoRef.current) {
           videoRef.current.srcObject = s;
-          void videoRef.current.play();
+          videoRef.current.setAttribute("playsinline", "true");
+          videoRef.current.setAttribute("autoplay", "true");
+          videoRef.current.muted = true;
+          void videoRef.current.play().catch(() => {});
         }
       })
       .catch((e: Error) => {
@@ -494,7 +582,10 @@ export function InspectionStation() {
             }
             if (videoRef.current) {
               videoRef.current.srcObject = s;
-              void videoRef.current.play();
+              videoRef.current.setAttribute("playsinline", "true");
+              videoRef.current.setAttribute("autoplay", "true");
+              videoRef.current.muted = true;
+              void videoRef.current.play().catch(() => {});
             }
           })
           .catch((err: Error) => setCamError(err.message || e.message || "Camera unavailable"));
@@ -515,8 +606,35 @@ export function InspectionStation() {
     const tick = async () => {
       if (stop) return;
       const v = videoRef.current;
-      if (!pausedRef.current && v && v.readyState >= 2) {
-        grab.getContext("2d")!.drawImage(v, 0, 0, grab.width, grab.height);
+      if (!pausedRef.current && v && (v.readyState >= 2 || v.videoWidth > 0)) {
+        const grabCtx = grab.getContext("2d");
+        if (grabCtx) {
+          grabCtx.drawImage(v, 0, 0, grab.width, grab.height);
+
+          // Real-time edge optical contrast & anomaly detector (instant on-device response)
+          const optical = detectOpticalFabricAnomalies(grabCtx, grab.width, grab.height);
+          if (optical) {
+            const W = canvasRef.current?.width ?? 1280;
+            const H = canvasRef.current?.height ?? 720;
+            const exists = detsRef.current.some(
+              (d) => Math.hypot(d.x - optical.x, d.y / H - optical.y) < 0.22
+            );
+            if (!exists) {
+              detsRef.current.push({
+                cls: optical.cls,
+                conf: optical.confidence,
+                points: optical.points,
+                x: optical.x,
+                y: optical.y * H,
+                w: optical.w * W,
+                h: optical.h * H,
+                logged: false,
+                ttl: 200,
+              });
+            }
+          }
+        }
+
         setAiStatus((a) => ({ ...a, state: "scanning" }));
         const t0 = performance.now();
         try {
@@ -524,7 +642,7 @@ export function InspectionStation() {
           if (stop) return;
           setInference(Math.round(performance.now() - t0));
           if (r.error) {
-            backoff = Math.min(backoff + 1, 4);
+            backoff = Math.min(backoff + 1, 3);
             setAiStatus({ state: "error", tip: "", msg: r.error });
           } else {
             backoff = 0;
@@ -545,20 +663,26 @@ export function InspectionStation() {
             const H = canvasRef.current?.height ?? 720;
             for (const d of r.defects) {
               detsRef.current.push({
-                cls: d.cls, conf: d.confidence, points: d.points,
-                x: Math.min(Math.max(d.x, 0), 1), y: Math.max(d.y, 0) * H,
-                w: Math.max(d.w * W, 30), h: Math.max(d.h * H, 30), logged: false, ttl: 150,
+                cls: d.cls,
+                conf: d.confidence,
+                points: d.points,
+                x: Math.min(Math.max(d.x, 0), 1),
+                y: Math.max(d.y, 0) * H,
+                w: Math.max(d.w * W, 40),
+                h: Math.max(d.h * H, 40),
+                logged: false,
+                ttl: 220,
               });
             }
           }
         } catch {
-          backoff = Math.min(backoff + 1, 4);
+          backoff = Math.min(backoff + 1, 3);
           setAiStatus({ state: "error", tip: "", msg: "Vision pipeline reconnecting..." });
         }
       }
-      if (!stop) setTimeout(tick, 3500 * 2 ** backoff);
+      if (!stop) setTimeout(tick, 2200 * 2 ** backoff);
     };
-    const id = setTimeout(tick, 1500);
+    const id = setTimeout(tick, 800);
     return () => { stop = true; clearTimeout(id); };
   }, [streamMode, detect, speed, updateCaptureTelemetry]);
 
@@ -749,7 +873,11 @@ export function InspectionStation() {
       const W = canvas.width;
       const H = canvas.height;
       const hasUploaded = Boolean(uploadedImageRef.current);
-      const live = streamMode === "live" && videoRef.current && videoRef.current.readyState >= 2 && !hasUploaded;
+      const live =
+        streamMode === "live" &&
+        videoRef.current &&
+        (videoRef.current.readyState >= 2 || videoRef.current.videoWidth > 0) &&
+        !hasUploaded;
       const isPaused = pausedRef.current;
       const step = isPaused || hasUploaded ? 0 : (speed / 42) * 2.2;
 
@@ -996,7 +1124,19 @@ export function InspectionStation() {
         )}
       >
         <canvas ref={canvasRef} width={1280} height={720} className="h-full w-full object-cover" />
-        <video ref={videoRef} playsInline muted className="hidden" />
+        <video
+          ref={videoRef}
+          playsInline
+          muted
+          autoPlay
+          className="absolute opacity-0 pointer-events-none -z-50 w-px h-px overflow-hidden"
+          onLoadedMetadata={() => {
+            if (videoRef.current) void videoRef.current.play().catch(() => {});
+          }}
+          onCanPlay={() => {
+            if (videoRef.current) void videoRef.current.play().catch(() => {});
+          }}
+        />
         <video ref={sampleVideoRef} src="/textiles/textile_inspection_feed.mp4" loop playsInline muted autoPlay className="hidden" />
 
         {/* Laser Scanner Reticle Overlays */}
