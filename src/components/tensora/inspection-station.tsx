@@ -373,9 +373,18 @@ export function InspectionStation() {
     if (!paused && !manualOpen) {
       hideTimerRef.current = setTimeout(() => {
         setControlsVisible(false);
-      }, 3200);
+      }, 2800);
     }
   }, [paused, manualOpen]);
+
+  const toggleControls = useCallback(() => {
+    if (controlsVisible && !paused && !manualOpen) {
+      setControlsVisible(false);
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    } else {
+      showControls();
+    }
+  }, [controlsVisible, paused, manualOpen, showControls]);
 
   const resetHideTimer = showControls;
 
@@ -943,73 +952,29 @@ export function InspectionStation() {
           W,
           H
         );
-      } else if (sampleVideoRef.current && sampleVideoRef.current.readyState >= 2 && simFeedType === "video") {
-        drawCover(
-          ctx,
-          sampleVideoRef.current,
-          sampleVideoRef.current.videoWidth || W,
-          sampleVideoRef.current.videoHeight || H,
-          W,
-          H
-        );
-      } else if (cleanKnitImgRef.current && simFeedType === "clean_table") {
-        drawCover(
-          ctx,
-          cleanKnitImgRef.current,
-          cleanKnitImgRef.current.naturalWidth || W,
-          cleanKnitImgRef.current.naturalHeight || H,
-          W,
-          H
-        );
       } else {
-        offsetRef.current = (offsetRef.current + step) % 10;
-        ctx.save();
-        ctx.translate(0, offsetRef.current);
-        if (pattern) {
-          ctx.fillStyle = pattern;
-          ctx.fillRect(0, -10, W, H + 20);
-        } else {
-          ctx.fillStyle = "#1e293b";
-          ctx.fillRect(0, 0, W, H);
-        }
-        ctx.restore();
-        const g = ctx.createRadialGradient(W / 2, H / 2, H / 4, W / 2, H / 2, W / 1.2);
-        g.addColorStop(0, "rgba(0,0,0,0)");
-        g.addColorStop(1, "rgba(0,0,0,0.45)");
-        ctx.fillStyle = g;
+        // Real camera initializing or waiting for feed
+        ctx.fillStyle = "#090e1a";
         ctx.fillRect(0, 0, W, H);
+        ctx.save();
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "rgba(148, 163, 184, 0.85)";
+        ctx.font = "500 15px 'JetBrains Mono', monospace";
+        ctx.fillText("Live Camera Inspection Active", W / 2, H / 2 - 12);
+        ctx.font = "400 12px 'JetBrains Mono', monospace";
+        ctx.fillStyle = "rgba(6, 182, 212, 0.9)";
+        ctx.fillText("Position fabric surface in front of camera to inspect", W / 2, H / 2 + 14);
+        ctx.restore();
       }
 
-      // Spawning defects for simulation
-      if (!live && !hasUploaded && !isPaused && now > nextSpawn) {
-        const cls = DEFECT_CLASSES[Math.floor(Math.random() * 5)]!;
-        const w = cls === "Needle Line" ? 40 : 70 + Math.random() * 40;
-        const h = cls === "Needle Line" ? 160 : 60 + Math.random() * 40;
-        detsRef.current.push({
-          cls,
-          conf: 0.84 + Math.random() * 0.15,
-          points: DEFAULT_POINTS[cls],
-          x: 0.12 + Math.random() * 0.76,
-          y: live ? H * (0.2 + Math.random() * 0.5) : -h,
-          w,
-          h,
-          logged: false,
-          ttl: 120,
-        });
-        nextSpawn = now + 6000 + Math.random() * 7000;
-      }
-
-      // Detections
-      detsRef.current = detsRef.current.filter((d) => (hasUploaded ? true : live ? d.ttl > 0 : d.y < H + 20));
+      // Filter active detections (real camera anomalies or uploaded sample benchmarks)
+      detsRef.current = detsRef.current.filter((d) => (hasUploaded ? true : d.ttl > 0));
       for (const d of detsRef.current) {
         if (!hasUploaded) {
-          if (live) d.ttl -= isPaused ? 0 : 1;
-          else {
-            d.y += step;
-            drawArtifact(ctx, d, W);
-          }
+          d.ttl -= isPaused ? 0 : 1;
         }
-        const visible = hasUploaded || live || d.y + d.h > H * 0.25;
+        const visible = hasUploaded || live || d.y + d.h > H * 0.15;
         if (!visible) continue;
 
         if (showXaiHeatmap) {
@@ -1030,7 +995,7 @@ export function InspectionStation() {
         ctx.fillStyle = "#020617";
         ctx.fillText(label, bx + 5, d.y - 8);
 
-        if (!d.logged && (live || d.y > H * 0.4)) {
+        if (!d.logged) {
           d.logged = true;
           if (floorAlarmEnabled) {
             if (d.points >= 3 || d.cls === "Needle Line") {
@@ -1117,10 +1082,10 @@ export function InspectionStation() {
       <div
         onMouseMove={showControls}
         onTouchStart={showControls}
-        onClick={showControls}
+        onClick={toggleControls}
         className={cn(
           "scanline relative w-full overflow-hidden rounded-2xl border-2 border-border/80 bg-slate-950 shadow-[0_12px_36px_rgba(0,0,0,0.7)] group select-none cursor-pointer",
-          isFullscreen ? "h-full flex-1" : "aspect-[4/3] sm:aspect-video"
+          isFullscreen ? "h-full flex-1" : "aspect-video"
         )}
       >
         <canvas ref={canvasRef} width={1280} height={720} className="h-full w-full object-cover" />
@@ -1137,7 +1102,6 @@ export function InspectionStation() {
             if (videoRef.current) void videoRef.current.play().catch(() => {});
           }}
         />
-        <video ref={sampleVideoRef} src="/textiles/textile_inspection_feed.mp4" loop playsInline muted autoPlay className="hidden" />
 
         {/* Laser Scanner Reticle Overlays */}
         <div className="pointer-events-none absolute inset-0">
@@ -1306,47 +1270,54 @@ export function InspectionStation() {
               : "opacity-0 translate-y-2 pointer-events-none"
           )}
         >
-          <div className="flex items-center gap-2 sm:gap-2.5 rounded-full border border-white/15 bg-slate-950/85 px-2.5 py-1 sm:px-3 sm:py-1.5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),0_8px_24px_rgba(0,0,0,0.7)] backdrop-blur-md">
+          <div className="flex items-center gap-1.5 sm:gap-2 rounded-full border border-white/15 bg-slate-950/85 px-2 py-1 sm:px-3 sm:py-1.5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),0_8px_24px_rgba(0,0,0,0.7)] backdrop-blur-md">
             {/* Flashlight / Torch */}
             <button
               type="button"
-              onClick={toggleTorch}
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleTorch();
+              }}
               title="Inspection Torch / Lighting"
               className={cn(
-                "h-7.5 w-7.5 sm:h-8 sm:w-8 rounded-full border flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer",
+                "h-7 w-7 sm:h-7.5 sm:w-7.5 rounded-full border flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer",
                 torchOn
                   ? "border-amber-400 bg-amber-400/20 text-amber-300 shadow-[0_0_8px_rgba(251,191,36,0.5)]"
                   : "border-white/10 bg-white/5 text-white/70 hover:text-white hover:border-white/20"
               )}
             >
-              {torchOn ? <Flashlight className="h-3.5 w-3.5" /> : <FlashlightOff className="h-3.5 w-3.5" />}
+              {torchOn ? <Flashlight className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-amber-300" /> : <FlashlightOff className="h-3 w-3 sm:h-3.5 sm:w-3.5" />}
             </button>
 
             {/* XAI Heatmap */}
             <button
               type="button"
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 setShowXaiHeatmap(!showXaiHeatmap);
                 toast(showXaiHeatmap ? "XAI heatmap disabled" : "XAI heatmap active (pixel thermal saliency)");
               }}
               title="XAI Defect Heatmap (Grad-CAM Saliency)"
               className={cn(
-                "h-7.5 w-7.5 sm:h-8 sm:w-8 rounded-full border flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer",
+                "h-7 w-7 sm:h-7.5 sm:w-7.5 rounded-full border flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer",
                 showXaiHeatmap
                   ? "border-cyan-400 bg-cyan-400/20 text-cyan-300 shadow-[0_0_8px_rgba(6,182,212,0.5)]"
                   : "border-white/10 bg-white/5 text-white/70 hover:text-white hover:border-white/20"
               )}
             >
-              <Flame className="h-3.5 w-3.5" />
+              <Flame className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
             </button>
 
             {/* Center Shutter Button (Play / Pause Inspection) - Ultra-Clean */}
             <button
               type="button"
-              onClick={() => setPaused(!paused)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setPaused(!paused);
+              }}
               title={paused ? "Resume Stream" : "Pause Stream"}
               className={cn(
-                "h-8.5 w-8.5 sm:h-9.5 sm:w-9.5 rounded-full border flex items-center justify-center transition-all duration-150 active:scale-90 cursor-pointer shadow-md",
+                "h-7.5 w-7.5 sm:h-8.5 sm:w-8.5 rounded-full border flex items-center justify-center transition-all duration-150 active:scale-90 cursor-pointer shadow-md",
                 paused
                   ? "border-amber-400/80 bg-amber-500 text-slate-950 hover:bg-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.5)]"
                   : "border-cyan-400/80 bg-gradient-to-tr from-cyan-500 to-emerald-400 text-slate-950 hover:brightness-110 shadow-[0_0_12px_rgba(6,182,212,0.5)]"
@@ -1358,21 +1329,27 @@ export function InspectionStation() {
             {/* Manual Flaw Log */}
             <button
               type="button"
-              onClick={() => setManualOpen(true)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setManualOpen(true);
+              }}
               title="Log Manual Flaw (ASTM 4-pt)"
-              className="h-7.5 w-7.5 sm:h-8 sm:w-8 rounded-full border border-white/10 bg-white/5 text-white/70 hover:text-white hover:border-white/20 flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer"
+              className="h-7 w-7 sm:h-7.5 sm:w-7.5 rounded-full border border-white/10 bg-white/5 text-white/70 hover:text-white hover:border-white/20 flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer"
             >
-              <PlusCircle className="h-3.5 w-3.5" />
+              <PlusCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
             </button>
 
             {/* Camera Snapshot */}
             <button
               type="button"
-              onClick={snapshot}
+              onClick={(e) => {
+                e.stopPropagation();
+                snapshot();
+              }}
               title="Save HD Snapshot"
-              className="h-7.5 w-7.5 sm:h-8 sm:w-8 rounded-full border border-white/10 bg-white/5 text-white/70 hover:text-white hover:border-white/20 flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer"
+              className="h-7 w-7 sm:h-7.5 sm:w-7.5 rounded-full border border-white/10 bg-white/5 text-white/70 hover:text-white hover:border-white/20 flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer"
             >
-              <Camera className="h-3.5 w-3.5" />
+              <Camera className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
             </button>
           </div>
         </div>
@@ -1380,52 +1357,9 @@ export function InspectionStation() {
 
       {/* Secondary Controls Bar: Stream Sources, Presets, and Multi-Camera Fleet */}
       {!isFullscreen && (
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-2.5 rounded-xl border border-border/80 bg-surface-2/70 p-2 sm:p-2.5 shadow-sm max-w-full overflow-hidden">
-          {/* Segmented Feed Switcher: 4-Column Grid on Mobile, Inline Strip on Tablet/Desktop */}
-          <div className="grid grid-cols-4 sm:flex sm:items-center gap-1 rounded-lg border border-border/60 bg-surface p-1 text-xs w-full md:w-auto">
-            <button
-              type="button"
-              onClick={() => {
-                uploadedImageRef.current = null;
-                setUploadedSample(null);
-                setSimFeedType("video");
-                setStreamMode("sim");
-                detsRef.current = [];
-                if (sampleVideoRef.current) void sampleVideoRef.current.play();
-                toast.success("Switched to Industrial Loom Video (HD)");
-              }}
-              className={cn(
-                "flex items-center justify-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-md font-mono text-[11px] sm:text-xs transition-all duration-150 cursor-pointer whitespace-nowrap",
-                !uploadedSample && streamMode === "sim" && simFeedType === "video"
-                  ? "bg-primary text-primary-foreground font-semibold shadow-xs"
-                  : "text-muted-foreground hover:text-foreground hover:bg-surface-2"
-              )}
-            >
-              <Video className="h-3.5 w-3.5 shrink-0" />
-              <span><span className="hidden sm:inline">Loom </span>Video</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                uploadedImageRef.current = null;
-                setUploadedSample(null);
-                setSimFeedType("clean_table");
-                setStreamMode("sim");
-                detsRef.current = [];
-                toast.success("Switched to Clean Light Table");
-              }}
-              className={cn(
-                "flex items-center justify-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-md font-mono text-[11px] sm:text-xs transition-all duration-150 cursor-pointer whitespace-nowrap",
-                !uploadedSample && streamMode === "sim" && simFeedType === "clean_table"
-                  ? "bg-primary text-primary-foreground font-semibold shadow-xs"
-                  : "text-muted-foreground hover:text-foreground hover:bg-surface-2"
-              )}
-            >
-              <SunMedium className="h-3.5 w-3.5 text-amber-300/80 shrink-0" />
-              <span><span className="hidden sm:inline">Light </span>Table</span>
-            </button>
-
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 rounded-xl border border-border/80 bg-surface-2/70 p-2 sm:p-2.5 shadow-sm max-w-full">
+          {/* Stream Switcher: Live Camera or Upload Fabric Image */}
+          <div className="flex items-center gap-1.5 rounded-lg border border-border/60 bg-surface p-1 text-xs w-full sm:w-auto">
             <button
               type="button"
               onClick={() => {
@@ -1433,10 +1367,10 @@ export function InspectionStation() {
                 setUploadedSample(null);
                 setStreamMode("live");
                 detsRef.current = [];
-                toast.success("Switched to Live Camera Stream");
+                toast.success("Active: Live Camera Optical Stream");
               }}
               className={cn(
-                "flex items-center justify-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-md font-mono text-[11px] sm:text-xs transition-all duration-150 cursor-pointer whitespace-nowrap",
+                "flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md font-mono text-xs transition-all duration-150 cursor-pointer min-w-0",
                 !uploadedSample && streamMode === "live"
                   ? "bg-primary text-primary-foreground font-semibold shadow-xs"
                   : "text-muted-foreground hover:text-foreground hover:bg-surface-2"
@@ -1447,28 +1381,33 @@ export function InspectionStation() {
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
               <Camera className="h-3.5 w-3.5 shrink-0" />
-              <span>Live<span className="hidden sm:inline"> Cam</span></span>
+              <span>Live Camera</span>
             </button>
 
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="flex items-center justify-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-md font-mono text-[11px] sm:text-xs text-muted-foreground hover:text-foreground hover:bg-surface-2 transition-all duration-150 cursor-pointer whitespace-nowrap"
+              className={cn(
+                "flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md font-mono text-xs transition-all duration-150 cursor-pointer min-w-0",
+                uploadedSample
+                  ? "bg-primary text-primary-foreground font-semibold shadow-xs"
+                  : "text-muted-foreground hover:text-foreground hover:bg-surface-2"
+              )}
             >
               <ImageUp className="h-3.5 w-3.5 shrink-0" />
-              <span>Upload<span className="hidden sm:inline"> Image</span></span>
+              <span>Upload Fabric</span>
             </button>
           </div>
 
-          {/* Presentation Flaw Presets Popover & Camera Selector: 2-Column on Mobile */}
-          <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full md:w-auto shrink-0">
+          {/* Presentation Flaw Presets Popover & Camera Selector: Stacked on Mobile, Inline on Desktop */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full lg:w-auto shrink-0">
             <Popover open={presetsOpen} onOpenChange={setPresetsOpen}>
               <PopoverTrigger asChild>
                 <Button
                   size="sm"
                   variant="outline"
                   className={cn(
-                    "h-8.5 gap-1.5 text-xs font-mono border-amber-500/40 hover:border-amber-400 bg-amber-500/10 text-amber-300 cursor-pointer w-full sm:w-auto justify-between sm:justify-start whitespace-nowrap",
+                    "h-8.5 gap-1.5 text-xs font-mono border-amber-500/40 hover:border-amber-400 bg-amber-500/10 text-amber-300 cursor-pointer w-full sm:w-auto justify-between sm:justify-start min-w-0",
                     uploadedSample && "border-amber-400 bg-amber-500/20 shadow-[0_0_8px_rgba(251,191,36,0.3)]"
                   )}
                 >
@@ -1476,7 +1415,7 @@ export function InspectionStation() {
                     <Sparkles className="h-3.5 w-3.5 text-amber-400 shrink-0" />
                     <span className="truncate">{uploadedSample ? uploadedSample.name : "Presets (8 Defects)"}</span>
                   </span>
-                  <ChevronDown className="h-3 w-3 opacity-60 shrink-0" />
+                  <ChevronDown className="h-3 w-3 opacity-60 shrink-0 ml-1" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-80 sm:w-96 p-3 space-y-2" align="end">
@@ -1519,9 +1458,11 @@ export function InspectionStation() {
                 toast.success(`Switched camera to ${val}`);
               }}
             >
-              <SelectTrigger className="h-8.5 text-xs font-mono w-full sm:w-[160px] bg-surface border-border/70 flex items-center gap-1.5">
-                <Smartphone className="h-3 w-3 text-telemetry shrink-0" />
-                <SelectValue placeholder="Camera / Fleet" />
+              <SelectTrigger className="h-8.5 text-xs font-mono w-full sm:w-[170px] bg-surface border-border/70 flex items-center justify-between gap-1.5">
+                <span className="flex items-center gap-1.5 truncate">
+                  <Smartphone className="h-3 w-3 text-telemetry shrink-0" />
+                  <SelectValue placeholder="Camera / Fleet" />
+                </span>
               </SelectTrigger>
               <SelectContent align="end">
                 <SelectItem value="rear" className="text-xs font-mono">

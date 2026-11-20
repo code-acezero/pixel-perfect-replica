@@ -2,6 +2,7 @@ import {
   Activity,
   Award,
   BarChart3,
+  BookOpen,
   Camera,
   ClipboardCheck,
   FileBadge,
@@ -46,8 +47,11 @@ export function getNavGroups(lang: Language = "en"): { label: string; items: Nav
       ],
     },
     {
-      label: isBn ? "কমপ্লায়েন্স (Compliance)" : "Compliance",
-      items: [{ title: isBn ? "সার্টিফিকেট" : "Certify", module: isBn ? "টেনসোরা সার্টিফিকেট" : "Tensora Certify", to: "/certify", icon: FileBadge }],
+      label: isBn ? "কমপ্লায়েন্স ও রিসোর্স" : "Compliance & Resources",
+      items: [
+        { title: isBn ? "সার্টিফিকেট" : "Certify", module: isBn ? "টেনসোরা সার্টিফিকেট" : "Tensora Certify", to: "/certify", icon: FileBadge },
+        { title: isBn ? "পিচ ও ডকস" : "Pitch & Docs", module: isBn ? "টেনসোরা ডকুমেন্টস" : "Tensora /docs", to: "/docs", icon: BookOpen },
+      ],
     },
     {
       label: isBn ? "সিস্টেম (System)" : "System",

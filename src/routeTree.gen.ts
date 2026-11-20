@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as DocsRouteImport } from './routes/docs'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
@@ -35,6 +36,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsRoute = DocsRouteImport.update({
+  id: '/docs',
+  path: '/docs',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -125,6 +131,7 @@ const AuthenticatedTraceRollIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/auth': typeof AuthRoute
+  '/docs': typeof DocsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/capture': typeof AuthenticatedCaptureRoute
@@ -143,6 +150,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
+  '/docs': typeof DocsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/capture': typeof AuthenticatedCaptureRoute
@@ -162,6 +170,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/docs': typeof DocsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
   '/_authenticated/capture': typeof AuthenticatedCaptureRoute
@@ -184,6 +193,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/docs'
     | '/reset-password'
     | '/analytics'
     | '/capture'
@@ -202,6 +212,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
+    | '/docs'
     | '/reset-password'
     | '/analytics'
     | '/capture'
@@ -220,6 +231,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_authenticated'
     | '/auth'
+    | '/docs'
     | '/reset-password'
     | '/_authenticated/analytics'
     | '/_authenticated/capture'
@@ -241,6 +253,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  DocsRoute: typeof DocsRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   VerifyCertIdRoute: typeof VerifyCertIdRoute
 }
@@ -259,6 +272,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/docs': {
+      id: '/docs'
+      path: '/docs'
+      fullPath: '/docs'
+      preLoaderRoute: typeof DocsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -434,6 +454,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  DocsRoute: DocsRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   VerifyCertIdRoute: VerifyCertIdRoute,
 }

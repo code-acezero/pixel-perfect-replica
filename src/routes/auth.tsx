@@ -103,6 +103,7 @@ function AuthPage() {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       setBusy(false);
       if (error) { toast.error(error.message); return; }
+      localStorage.removeItem("tensora_demo_user");
       navigate({ to: target, replace: true });
     } else {
       const { data, error } = await supabase.auth.signUp({
@@ -112,6 +113,7 @@ function AuthPage() {
       });
       setBusy(false);
       if (error) { toast.error(error.message); return; }
+      localStorage.removeItem("tensora_demo_user");
       if (data.session) navigate({ to: target, replace: true });
       else toast.success("Check your email to confirm your account");
     }

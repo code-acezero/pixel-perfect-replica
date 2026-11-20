@@ -81,6 +81,19 @@ async function sendToErp(certId: string) {
   }
 }
 
+let lastErrorToastTime = 0;
+function notifySyncError(title: string, description: string) {
+  const now = Date.now();
+  // Throttle error notifications so inspection stream doesn't flood the UI
+  if (now - lastErrorToastTime < 5000) return;
+  lastErrorToastTime = now;
+  toast.error(title, {
+    id: "offline-sync-error",
+    description,
+    duration: 3500,
+  });
+}
+
 /** Run a write now, or queue it on this device if there's no connection. */
 export function write(op: Op, what: string) {
   const queue = async () => {
@@ -92,7 +105,13 @@ export function write(op: Op, what: string) {
     try {
       const { error } = await run(op);
       if (error && isNetworkError(error.message)) return queue();
-      if (error) toast.error(`Couldn't save ${what}`, { description: error.message });
+      if (error) {
+        const isRls = error.message.includes("row-level security") || error.code === "42501";
+        notifySyncError(
+          `Couldn't save ${what}`,
+          isRls ? "Sign in with an inspector role to persist to cloud database" : error.message
+        );
+      }
     } catch {
       await queue();
     }
@@ -113,7 +132,13 @@ export async function flush() {
       try { ({ error } = await run(it.op)); } catch (e) { error = { message: String(e) }; }
       if (error && isNetworkError(error.message)) break;
       // Duplicate key = already saved on an earlier attempt.
-      if (error && error.code !== "23505") toast.error(`Couldn't sync ${it.what}`, { description: error.message });
+      if (error && error.code !== "23505") {
+        const isRls = error.message.includes("row-level security") || error.code === "42501";
+        notifySyncError(
+          `Couldn't sync ${it.what}`,
+          isRls ? "Sign in with an inspector role to persist to cloud database" : error.message
+        );
+      }
       await tx("outbox", "readwrite", (s) => s.delete(it.seq));
       done++;
     }

@@ -44,31 +44,131 @@ export function CloudSync({ userId, children }: { userId: string; children: Reac
     }
 
     type Cached = { snap: Awaited<ReturnType<typeof cloud.loadAll>>; me: Awaited<ReturnType<typeof cloud.loadMe>> };
-    const apply = ({ snap, me }: Cached) =>
-      useTensora.getState().hydrate(snap, { id: userId, name: me.name, email: me.email, role: primaryRole(me.roles as DbRole[]) });
+    const apply = ({ snap, me }: Cached) => {
+      // If user account is brand new and has no rolls yet, provide a clean starter roll without any fake defects
+      const hasRolls = snap.rolls && snap.rolls.length > 0;
+      const cleanSnap = hasRolls
+        ? snap
+        : {
+            ...snap,
+            rolls: [
+              {
+                id: "ROLL-01",
+                article: "100% Cotton Single Jersey",
+                gsm: 180,
+                widthIn: 60,
+                lengthM: 0,
+                buyerId: snap.buyers?.[0]?.id || "B-INTERNAL",
+                lot: "LOT-01",
+                supplier: "In-House Mill",
+                site: "MILL-01",
+                line: "Optical Inspection Frame",
+                status: "in_progress",
+              },
+            ],
+            sessions: [
+              {
+                id: "INS-001",
+                rollId: "ROLL-01",
+                deviceId: "rear",
+                inspector: me.name,
+                location: "Inspection Frame #01",
+                site: "MILL-01",
+                startedAt: Date.now(),
+                status: "live",
+                metersInspected: 0,
+              },
+            ],
+            defects: snap.defects || [],
+            alerts: snap.alerts || [],
+            certificates: snap.certificates || [],
+          };
 
-    const applySeedFallback = () => {
+      useTensora.getState().hydrate(cleanSnap, {
+        id: userId,
+        name: me.name,
+        email: me.email,
+        role: primaryRole(me.roles as DbRole[]),
+      });
+    };
+
+    const applyCleanUserFallback = async () => {
+      let email = "";
+      let name = "Plant Inspector";
+      try {
+        const { data } = await supabase.auth.getUser();
+        if (data?.user) {
+          email = data.user.email || "";
+          name = data.user.user_metadata?.full_name || (email ? email.split("@")[0] : "Plant Inspector");
+        }
+      } catch {}
+
+      // Clean fresh state for real user account — ZERO fake historical defects!
       useTensora.getState().hydrate(
         {
-          buyers: buyersSeed,
-          rolls: rollsSeed,
-          devices: devicesSeed,
-          sessions: sessionsSeed,
-          defects: defectsSeed,
-          alerts: alertsSeed,
-          certificates: certificatesSeed,
+          buyers: [],
+          rolls: [
+            {
+              id: "ROLL-01",
+              article: "100% Cotton Single Jersey",
+              gsm: 180,
+              widthIn: 60,
+              lengthM: 0,
+              buyerId: "B-INTERNAL",
+              lot: "LOT-01",
+              supplier: "In-House Mill",
+              site: "MILL-01",
+              line: "Optical Inspection Frame",
+              status: "in_progress",
+            },
+          ],
+          devices: [
+            {
+              id: "rear",
+              name: "Main Camera",
+              kind: "mobile",
+              location: "Handheld Inspection",
+              status: "online",
+              resolution: "1080p",
+              fps: 60,
+              quality: 98,
+              lastSession: "INS-001",
+              calibrated: true,
+              batteryPct: 100,
+              streamRole: "overhead_main",
+              streamUrl: "",
+              torchOn: false,
+              pingMs: 12,
+            },
+          ],
+          sessions: [
+            {
+              id: "INS-001",
+              rollId: "ROLL-01",
+              deviceId: "rear",
+              inspector: name,
+              location: "Handheld Frame #01",
+              site: "MILL-01",
+              startedAt: Date.now(),
+              status: "live",
+              metersInspected: 0,
+            },
+          ],
+          defects: [],
+          alerts: [],
+          certificates: [],
         },
         {
           id: userId,
-          name: "Field Inspector / Plant Lead",
-          email: "inspector@tensora.internal",
+          name,
+          email,
           role: "plant_admin",
         }
       );
     };
 
     const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error("Supabase cloud sync timed out")), 3500)
+      setTimeout(() => reject(new Error("Supabase cloud sync timed out")), 10000)
     );
 
     Promise.race([Promise.all([cloud.loadAll(), cloud.loadMe(userId)]), timeoutPromise])
@@ -86,10 +186,10 @@ export function CloudSync({ userId, children }: { userId: string; children: Reac
           if (cached) {
             apply(cached);
           } else {
-            applySeedFallback();
+            await applyCleanUserFallback();
           }
         } catch {
-          if (!cancelled) applySeedFallback();
+          if (!cancelled) await applyCleanUserFallback();
         }
       });
 

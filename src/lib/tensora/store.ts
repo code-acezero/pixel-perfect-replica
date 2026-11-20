@@ -138,7 +138,7 @@ export const useTensora = create<TensoraState>((set, get) => ({
   },
   floorAlarmEnabled: true,
   setFloorAlarmEnabled: (floorAlarmEnabled) => set({ floorAlarmEnabled }),
-  streamMode: "sim",
+  streamMode: "live",
   selectedDeviceId: "rear",
   sessionLocation: "Line #04 · Take-down",
   captureTelemetry: {
